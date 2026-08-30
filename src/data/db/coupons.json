@@ -1,0 +1,14 @@
+[
+  {
+    "id": "coup-1787710456624",
+    "code": "GET20%",
+    "discountType": "PERCENTAGE",
+    "discountValue": 10,
+    "minOrder": 1500,
+    "usageLimit": 1,
+    "usageCount": 0,
+    "active": true,
+    "expiryDate": "2026-10-01",
+    "description": "Promo code GET20%"
+  }
+]

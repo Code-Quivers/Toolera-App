@@ -1,0 +1,28 @@
+[
+  {
+    "id": "CUST-2109",
+    "name": "Md Rafiqul Islam",
+    "phone": "01703596795",
+    "email": "N/A",
+    "location": "Chattogram",
+    "address": "House 65 Road 02 Kamar Para, Rangpur, 5400\nBD, Kurigram, Chattogram",
+    "ordersCount": 1,
+    "totalSpent": 430,
+    "status": "ACTIVE",
+    "joinedDate": "2026-08-26",
+    "notes": "First order RM-674900-8771"
+  },
+  {
+    "id": "CUST-5370",
+    "name": "MD RAFIQUL ISLAM",
+    "phone": "01647221566",
+    "email": "N/A",
+    "location": "Dhaka",
+    "address": "Rangpur Goneshpur, dbam, Dhaka",
+    "ordersCount": 9,
+    "totalSpent": 7085,
+    "status": "ACTIVE",
+    "joinedDate": "2026-08-25",
+    "notes": "First order RM-366385-6287"
+  }
+]
