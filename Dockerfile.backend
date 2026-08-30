@@ -3,14 +3,14 @@ FROM node:20-alpine AS base
 
 FROM base AS deps
 WORKDIR /app
-COPY server/package.json server/package-lock.json* ./
-COPY server/prisma ./prisma
+COPY backend/package.json backend/package-lock.json* ./
+COPY backend/prisma ./prisma
 RUN npm ci
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY server/ .
+COPY backend/ .
 RUN npx prisma generate
 RUN npm run build || true
 
