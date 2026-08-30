@@ -3,8 +3,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:5000/api/v1';
 
-const INTERNAL_KEY =
-  process.env.INTERNAL_SERVICE_KEY || 'toolera_internal_service_key_2026';
+const INTERNAL_KEY = process.env.INTERNAL_SERVICE_KEY;
 
 export async function internalFetch<T = any>(
   endpoint: string,

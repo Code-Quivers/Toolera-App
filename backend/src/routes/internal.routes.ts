@@ -1,10 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { internalController } from '../controllers/internal.controller.js';
 
-const INTERNAL_KEY = process.env.INTERNAL_SERVICE_KEY || 'toolera_internal_service_key_2026';
+const INTERNAL_KEY = process.env.INTERNAL_SERVICE_KEY;
 
 function requireInternalKey(req: Request, res: Response, next: NextFunction) {
-  if (req.headers['x-internal-key'] !== INTERNAL_KEY) {
+  if (!INTERNAL_KEY || req.headers['x-internal-key'] !== INTERNAL_KEY) {
     return res.status(403).json({ success: false, message: 'Forbidden' });
   }
   next();
