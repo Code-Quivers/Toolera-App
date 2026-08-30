@@ -16,6 +16,7 @@ import { smsRouter } from './routes/sms.routes.js';
 import { backupRouter } from './routes/backup.routes.js';
 import { storeRouter } from './routes/store.routes.js';
 import { subscriptionRouter } from './routes/subscription.routes.js';
+import { internalRouter } from './routes/internal.routes.js';
 
 import path from 'path';
 import { uploadRouter } from './routes/upload.routes.js';
@@ -63,6 +64,7 @@ app.use('/api/v1/sms', smsRouter);
 app.use('/api/v1/backup', backupRouter);
 app.use('/api/v1/stores', storeRouter);
 app.use('/api/v1/subscriptions', subscriptionRouter);
+app.use('/api/v1/internal', internalRouter);
 
 // Global Error Handler
 app.use(errorHandler);
