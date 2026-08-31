@@ -1,0 +1,73 @@
+import { Request, Response } from 'express';
+import { eq, isNull, asc } from 'drizzle-orm';
+import { db, rdb } from '../db/index.js';
+import { couponsTable } from '../db/schema.js';
+import { AuthRequest } from '../middlewares/auth.middleware.js';
+
+export async function validateCoupon(req: Request, res: Response) {
+  try {
+    const { code, orderAmount = 0 } = req.body;
+    if (!code) return res.status(400).json({ success: false, message: 'Coupon code required' });
+
+    const coupon = await rdb()
+      .select()
+      .from(couponsTable)
+      .where(eq(couponsTable.code, String(code).trim().toUpperCase()))
+      .limit(1)
+      .then(r => r[0] ?? null);
+
+    if (!coupon || !coupon.active || coupon.deletedAt) {
+      return res.status(404).json({ success: false, message: 'Invalid or inactive coupon code' });
+    }
+
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This coupon has expired' });
+    }
+
+    if (coupon.minOrderValue && Number(orderAmount) < coupon.minOrderValue) {
+      return res.status(400).json({
+        success: false,
+        message: `Minimum order amount for this coupon is ৳${coupon.minOrderValue}`,
+      });
+    }
+
+    return res.json({ success: true, message: 'Coupon applied successfully', data: coupon });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function getCoupons(req: AuthRequest, res: Response) {
+  try {
+    const coupons = await rdb()
+      .select()
+      .from(couponsTable)
+      .where(isNull(couponsTable.deletedAt))
+      .orderBy(asc(couponsTable.code));
+    return res.json({ success: true, data: coupons });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function createCoupon(req: AuthRequest, res: Response) {
+  try {
+    const { code, discountType = 'PERCENTAGE', discountValue, minOrderValue = 0, expiresAt } = req.body;
+
+    if (!code || !discountValue) {
+      return res.status(400).json({ success: false, message: 'Coupon code and discount value required' });
+    }
+
+    const [created] = await db.insert(couponsTable).values({
+      code: String(code).trim().toUpperCase(),
+      discountType: discountType as any,
+      discountValue: Number(discountValue),
+      minOrderValue: Number(minOrderValue) || 0,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+    }).returning();
+
+    return res.status(201).json({ success: true, message: 'Coupon created', data: created });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
