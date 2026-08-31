@@ -46,8 +46,9 @@ export function Header() {
   const { items: wishlistItems } = useWishlistStore();
   const { openSearch: openSearchModal } = useSearchStore();
   const { getMenuByLocation, getActiveMenu } = useMenuStore();
-  const headerSettings = useHeaderStore((state) => state.settings);
-  const activeNavbarLayout = mounted ? headerSettings.navbarLayout : defaultHeaderSettings.navbarLayout;
+  const { settings: rawHeaderSettings } = useHeaderStore();
+  const headerSettings = rawHeaderSettings ?? defaultHeaderSettings;
+  const activeNavbarLayout = (mounted ? headerSettings : defaultHeaderSettings).navbarLayout;
   const { customer, isLoggedIn, openAuthModal } = useCustomerAuthStore();
 
   const headerMenu = getMenuByLocation("header") || getActiveMenu();

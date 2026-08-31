@@ -43,6 +43,8 @@ export function Footer() {
     setMounted(true);
   }, []);
 
+  if (!settings) return null;
+
   const assuranceList =
     settings.assurancePillars && settings.assurancePillars.length > 0
       ? settings.assurancePillars

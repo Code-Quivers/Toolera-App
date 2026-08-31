@@ -6,14 +6,15 @@ import { formatPrice } from "@/lib/formatters";
 import { useShippingSettingsStore } from "@/store/useShippingSettingsStore";
 
 export function AnnouncementBar() {
-  const { freeShippingThreshold, isFreeShippingEnabled } = useShippingSettingsStore();
+  const { settings: shippingSettings } = useShippingSettingsStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const threshold = mounted ? freeShippingThreshold : 2000;
+  const threshold = mounted ? (shippingSettings?.freeShippingThreshold ?? 2000) : 2000;
+  const isFreeShippingEnabled = mounted ? (shippingSettings?.isFreeShippingEnabled ?? false) : false;
 
   return (
     <div className="bg-slate-950 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
