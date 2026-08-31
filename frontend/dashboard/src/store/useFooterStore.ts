@@ -2,10 +2,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 
+export interface FooterLinkItem {
+  label: string;
+  url: string;
+}
+
 export const defaultFooterSettings = {
-  columns: [],
-  copyright: "© 2025 Raifa's Mart",
+  columnsCount: 3 as 3 | 4 | 5,
+  col2Links: [] as FooterLinkItem[],
+  col3Links: [] as FooterLinkItem[],
+  col4Links: [] as FooterLinkItem[],
+  col5Links: [] as FooterLinkItem[],
+  bottomLinks: [] as FooterLinkItem[],
+  phone: "",
+  email: "",
+  address: "",
+  copyright: "© 2025 Toolera",
   showSocial: true,
+  showTopAssuranceBanner: true,
+  assurancePillars: [] as { title: string; subtitle: string; iconName: string }[],
+  enableCodBadge: true,
+  enableBkashBadge: true,
+  enableNagadBadge: true,
 };
 
 export function useFooterStore() {
@@ -24,5 +42,10 @@ export function useFooterStore() {
     setSettings((prev: any) => ({ ...prev, ...data }));
   }, []);
 
-  return { settings, isLoading, fetchFooter, updateSettings };
+  const resetToDefaults = useCallback(async () => {
+    await api.updateFooter(defaultFooterSettings);
+    setSettings(defaultFooterSettings);
+  }, []);
+
+  return { settings, isLoading, fetchFooter, updateSettings, resetToDefaults };
 }

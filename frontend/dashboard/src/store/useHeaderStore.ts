@@ -2,10 +2,30 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 
+export type NavbarLayoutType =
+  | "DEFAULT"
+  | "CENTERED"
+  | "MINIMAL"
+  | "MEGA_MENU"
+  | "SPLIT_LOGO"
+  | "TRANSPARENT"
+  | "STICKY_SLIM"
+  | "DOUBLE_ROW"
+  | "SIDEBAR"
+  | "FULLWIDTH";
+
 export const defaultHeaderSettings = {
-  navbarLayout: "DEFAULT",
+  navbarLayout: "DEFAULT" as NavbarLayoutType,
   announcementText: "",
   showAnnouncement: false,
+  logoType: "TEXT",
+  logoText: "Toolera",
+  logoImageUrl: "",
+  faviconUrl: "",
+  ogImageUrl: "",
+  ogTitle: "",
+  ogDescription: "",
+  phone: "",
 };
 
 export function useHeaderStore() {
@@ -25,5 +45,10 @@ export function useHeaderStore() {
     return result;
   }, []);
 
-  return { settings, isLoading, fetchHeader, updateSettings };
+  const resetToDefaults = useCallback(async () => {
+    await api.updateHeader(defaultHeaderSettings);
+    setSettings(defaultHeaderSettings);
+  }, []);
+
+  return { settings, isLoading, fetchHeader, updateSettings, resetToDefaults };
 }

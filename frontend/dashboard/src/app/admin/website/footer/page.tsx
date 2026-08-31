@@ -77,6 +77,10 @@ export default function AdminFooterPage() {
     showNotification("Footer navigation & settings saved and synced successfully!");
   };
 
+  if (!settings) return (
+    <div className="flex items-center justify-center h-64 text-slate-400 text-sm">Loading footer settings…</div>
+  );
+
   return (
     <div className="space-y-6 w-full pb-16">
       {/* Header Top Bar */}
