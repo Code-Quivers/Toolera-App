@@ -43,6 +43,7 @@ app.get('/health', (_req, res) => {
       storeManagement: config.services.storeManagement,
       business: config.services.business,
     },
+    redis: config.redis.url.replace(/:\/\/.*@/, '://**@'), // hide credentials
   });
 });
 

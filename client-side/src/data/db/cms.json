@@ -1,0 +1,264 @@
+{
+  "draftSections": [
+    {
+      "id": "sec-hero",
+      "type": "hero-slider",
+      "position": 0,
+      "enabled": true,
+      "settings": {
+        "autoplay": true,
+        "interval": 5000,
+        "boxed": true,
+        "slides": []
+      }
+    },
+    {
+      "id": "sec-categories",
+      "type": "category-carousel",
+      "position": 1,
+      "enabled": true,
+      "settings": {
+        "title": "Shop by Categories",
+        "tagline": "Curated Collections",
+        "limit": 8,
+        "showCount": true
+      }
+    },
+    {
+      "id": "sec-trending",
+      "type": "trending-products",
+      "position": 2,
+      "enabled": true,
+      "settings": {
+        "title": "Trending Now",
+        "subtitle": "Swipe through the viral products everyone's discovering right now.",
+        "source": "trending",
+        "limit": 8,
+        "showUrgencyBar": true,
+        "showRating": true,
+        "showQuickAdd": true
+      }
+    },
+    {
+      "id": "sec-new-arrivals",
+      "type": "new-arrivals",
+      "position": 3,
+      "enabled": true,
+      "settings": {
+        "title": "New Arrivals",
+        "subtitle": "Fresh finds, just added to our collection this week.",
+        "source": "new-arrivals",
+        "limit": 4,
+        "columns": {
+          "desktop": 4,
+          "tablet": 3,
+          "mobile": 2
+        },
+        "showRating": true,
+        "showBadge": true
+      }
+    },
+    {
+      "id": "sec-best-sellers",
+      "type": "best-sellers",
+      "position": 4,
+      "enabled": true,
+      "settings": {
+        "title": "Best Sellers",
+        "subtitle": "Customer favorites that keep selling out.",
+        "source": "best-sellers",
+        "limit": 4,
+        "columns": {
+          "desktop": 4,
+          "tablet": 3,
+          "mobile": 2
+        },
+        "showRating": true,
+        "showBadge": true
+      }
+    },
+    {
+      "id": "sec-reviews",
+      "type": "reviews",
+      "position": 5,
+      "enabled": true,
+      "settings": {
+        "title": "Loved by Our Customers",
+        "subtitle": "Real experiences from verified shoppers across Bangladesh.",
+        "limit": 4
+      }
+    },
+    {
+      "id": "sec-trust",
+      "type": "trust-pillars",
+      "position": 6,
+      "enabled": true,
+      "settings": {
+        "title": "Why Shop With Raifa's Mart?",
+        "subtitle": "We are built on trust, genuine curation, and reliable local support.",
+        "pillars": [
+          {
+            "title": "Carefully Selected",
+            "description": "We select products worth discovering.",
+            "iconName": "Sparkles"
+          },
+          {
+            "title": "Cash on Delivery",
+            "description": "Pay when you receive your parcel in BD.",
+            "iconName": "ShieldCheck"
+          },
+          {
+            "title": "Fast BD Delivery",
+            "description": "Prompt courier dispatch to all 64 districts.",
+            "iconName": "Truck"
+          },
+          {
+            "title": "7-Day Easy Return",
+            "description": "Hassle-free exchange policy on defects.",
+            "iconName": "RotateCcw"
+          }
+        ]
+      }
+    }
+  ],
+  "publishedSections": [
+    {
+      "id": "sec-hero",
+      "type": "hero-slider",
+      "position": 0,
+      "enabled": true,
+      "settings": {
+        "autoplay": true,
+        "interval": 5000,
+        "boxed": true,
+        "slides": []
+      }
+    },
+    {
+      "id": "sec-categories",
+      "type": "category-carousel",
+      "position": 1,
+      "enabled": true,
+      "settings": {
+        "title": "Shop by Categories",
+        "tagline": "Curated Collections",
+        "limit": 8,
+        "showCount": true
+      }
+    },
+    {
+      "id": "sec-trending",
+      "type": "trending-products",
+      "position": 2,
+      "enabled": true,
+      "settings": {
+        "title": "Trending Now",
+        "subtitle": "Swipe through the viral products everyone's discovering right now.",
+        "source": "trending",
+        "limit": 8,
+        "showUrgencyBar": true,
+        "showRating": true,
+        "showQuickAdd": true
+      }
+    },
+    {
+      "id": "sec-new-arrivals",
+      "type": "new-arrivals",
+      "position": 3,
+      "enabled": true,
+      "settings": {
+        "title": "New Arrivals",
+        "subtitle": "Fresh finds, just added to our collection this week.",
+        "source": "new-arrivals",
+        "limit": 4,
+        "columns": {
+          "desktop": 4,
+          "tablet": 3,
+          "mobile": 2
+        },
+        "showRating": true,
+        "showBadge": true
+      }
+    },
+    {
+      "id": "sec-best-sellers",
+      "type": "best-sellers",
+      "position": 4,
+      "enabled": true,
+      "settings": {
+        "title": "Best Sellers",
+        "subtitle": "Customer favorites that keep selling out.",
+        "source": "best-sellers",
+        "limit": 4,
+        "columns": {
+          "desktop": 4,
+          "tablet": 3,
+          "mobile": 2
+        },
+        "showRating": true,
+        "showBadge": true
+      }
+    },
+    {
+      "id": "sec-reviews",
+      "type": "reviews",
+      "position": 5,
+      "enabled": true,
+      "settings": {
+        "title": "Loved by Our Customers",
+        "subtitle": "Real experiences from verified shoppers across Bangladesh.",
+        "limit": 4
+      }
+    },
+    {
+      "id": "sec-trust",
+      "type": "trust-pillars",
+      "position": 6,
+      "enabled": true,
+      "settings": {
+        "title": "Why Shop With Raifa's Mart?",
+        "subtitle": "We are built on trust, genuine curation, and reliable local support.",
+        "pillars": [
+          {
+            "title": "Carefully Selected",
+            "description": "We select products worth discovering.",
+            "iconName": "Sparkles"
+          },
+          {
+            "title": "Cash on Delivery",
+            "description": "Pay when you receive your parcel in BD.",
+            "iconName": "ShieldCheck"
+          },
+          {
+            "title": "Fast BD Delivery",
+            "description": "Prompt courier dispatch to all 64 districts.",
+            "iconName": "Truck"
+          },
+          {
+            "title": "7-Day Easy Return",
+            "description": "Hassle-free exchange policy on defects.",
+            "iconName": "RotateCcw"
+          }
+        ]
+      }
+    }
+  ],
+  "theme": {
+    "homepageLayout": "ORIGINAL_RAIFAS_MART",
+    "primary": "#008B47",
+    "accent": "#F9A01B",
+    "primaryButtonText": "#FFFFFF",
+    "accentButtonText": "#0F172A",
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "text": "#0F172A",
+    "muted": "#64748B",
+    "border": "#E2E8F0",
+    "radius": "1rem",
+    "bodyFont": "Inter, sans-serif",
+    "headingFont": "Inter, sans-serif",
+    "shadow": "0 1px 3px 0 rgb(0 0 0 / 0.1)",
+    "containerWidth": "1280px",
+    "sectionSpacing": "4rem"
+  }
+}

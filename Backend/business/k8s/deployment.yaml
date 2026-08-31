@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: business-service
+  labels:
+    app: business-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: business-service
+  template:
+    metadata:
+      labels:
+        app: business-service
+    spec:
+      containers:
+        - name: business-service
+          image: toolera/business-service:latest
+          ports:
+            - containerPort: 5002
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "5002"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: jwt-secret
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: redis-url
+            - name: REDIS_EXPIRES_IN
+              value: "86400"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: business-db-secrets
+                  key: database-url
+            - name: DATABASE_URL_REPLICA_1
+              valueFrom:
+                secretKeyRef:
+                  name: business-db-secrets
+                  key: database-url-replica-1
+            - name: DATABASE_URL_REPLICA_2
+              valueFrom:
+                secretKeyRef:
+                  name: business-db-secrets
+                  key: database-url-replica-2
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: business-svc
+spec:
+  selector:
+    app: business-service
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
+  type: ClusterIP

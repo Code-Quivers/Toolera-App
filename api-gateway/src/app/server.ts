@@ -1,18 +1,37 @@
-import { config } from './config';
-import app from './app';
+import { config } from './config/index.js';
+import { RedisClient } from './shared/redis.js';
+import { infoLogger, errorLogger } from './utils/logger.js';
+import app from './app.js';
 
-const server = app.listen(config.port, () => {
-  console.log(`[API Gateway] running on port ${config.port}`);
-  console.log(`[Health] http://localhost:${config.port}/health`);
-  console.log(`[→ Store Management] ${config.services.storeManagement}`);
-  console.log(`[→ Business Service] ${config.services.business}`);
-});
+const start = async () => {
+  // Connect to Redis before accepting requests
+  await RedisClient.connect();
 
-process.on('unhandledRejection', (err: any) => {
-  console.error('[API Gateway] Unhandled rejection:', err.message);
-  server.close(() => process.exit(1));
-});
+  const server = app.listen(config.port, () => {
+    infoLogger.info(`[API Gateway] running on port ${config.port}`);
+    infoLogger.info(`[Health] http://localhost:${config.port}/health`);
+    infoLogger.info(`[→ Store Management] ${config.services.storeManagement}`);
+    infoLogger.info(`[→ Business Service] ${config.services.business}`);
+  });
 
-process.on('SIGTERM', () => {
-  server.close(() => process.exit(0));
-});
+  const shutdown = async (signal: string) => {
+    infoLogger.info(`${signal} received — shutting down`);
+    server.close(async () => {
+      await RedisClient.disconnect();
+      process.exit(0);
+    });
+  };
+
+  process.on('unhandledRejection', (err: any) => {
+    errorLogger.error('[API Gateway] Unhandled rejection:', err?.message ?? err);
+    server.close(async () => {
+      await RedisClient.disconnect();
+      process.exit(1);
+    });
+  });
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+};
+
+start();

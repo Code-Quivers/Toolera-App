@@ -12,6 +12,12 @@ export const config = {
     business: process.env.BUSINESS_SERVICE_URL || 'http://localhost:5002',
   },
 
+  // Redis — used for session token storage and pub/sub (not response caching)
+  redis: {
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    expiresIn: Number(process.env.REDIS_EXPIRES_IN) || 86400, // seconds (default 24 h)
+  },
+
   // Rate limiting
   rateLimit: {
     windowMs: 15 * 60 * 1000,

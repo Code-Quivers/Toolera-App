@@ -1,0 +1,48 @@
+import { ProductReview } from "@/types";
+
+export const mockReviews: ProductReview[] = [
+  {
+    id: "rev-1",
+    authorName: "Tanvir Hasan",
+    authorLocation: "Dhaka",
+    rating: 5,
+    date: "2026-02-14",
+    comment: "The magnetic monitor bar light is a lifesaver for my late-night coding sessions. Completely glare-free and looks so clean on my desk. Arrived in 24 hours inside Dhaka!",
+    productName: "Magnetic LED Desk Light Bar",
+    avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80",
+    helpfulCount: 24,
+  },
+  {
+    id: "rev-2",
+    authorName: "Nusrat Jahan",
+    authorLocation: "Chattogram",
+    rating: 5,
+    date: "2026-02-10",
+    comment: "The 100-speed turbo fan is insane! In this hot weather, having this in my handbag is an absolute necessity. Build quality is top notch aluminum.",
+    productName: "High-Speed Mini Handheld Turbo Jet Fan",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
+    helpfulCount: 18,
+  },
+  {
+    id: "rev-3",
+    authorName: "Sabbir Ahmed",
+    authorLocation: "Sylhet",
+    rating: 5,
+    date: "2026-02-08",
+    comment: "Bought the anti-gravity humidifier as a gift for my sister. Everyone who visits stops and stares at the upward water droplets. Such a unique piece!",
+    productName: "Anti-Gravity Levitating Water Droplet Humidifier",
+    avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80",
+    helpfulCount: 15,
+  },
+  {
+    id: "rev-4",
+    authorName: "Ayesha Siddiqua",
+    authorLocation: "Uttara, Dhaka",
+    rating: 5,
+    date: "2026-01-29",
+    comment: "Saved my expensive wool sweater with the electric lint shaver. It literally looks brand new from the store. Highly recommended.",
+    productName: "Electric Fabric Shaver & Lint Remover",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+    helpfulCount: 11,
+  },
+];

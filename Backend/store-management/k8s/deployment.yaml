@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-management
+  labels:
+    app: store-management
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: store-management
+  template:
+    metadata:
+      labels:
+        app: store-management
+    spec:
+      containers:
+        - name: store-management
+          image: toolera/store-management:latest
+          ports:
+            - containerPort: 5001
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "5001"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: jwt-secret
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: redis-url
+            - name: REDIS_EXPIRES_IN
+              value: "86400"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: store-management-db-secrets
+                  key: database-url
+            - name: DATABASE_URL_REPLICA_1
+              valueFrom:
+                secretKeyRef:
+                  name: store-management-db-secrets
+                  key: database-url-replica-1
+            - name: DATABASE_URL_REPLICA_2
+              valueFrom:
+                secretKeyRef:
+                  name: store-management-db-secrets
+                  key: database-url-replica-2
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-management-svc
+spec:
+  selector:
+    app: store-management
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: ClusterIP
