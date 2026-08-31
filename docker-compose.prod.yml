@@ -1,42 +1,315 @@
-version: '3.8'
+version: "3.9"
+
+# Toolera Store — Production Docker Compose
+# Services: api-gateway · store-management · business · storefront · dashboard
+# Infrastructure: PostgreSQL · Redis · MinIO · RabbitMQ · Kafka
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  toolera-net:
+    driver: bridge
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  rabbitmq_data:
+  kafka_data:
 
 services:
-  # Backend API Server
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    restart: always
+
+  # ── Infrastructure ─────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    <<: [*restart, *logging]
     environment:
-      - NODE_ENV=production
-      - PORT=5000
-      - DATABASE_URL=${DATABASE_URL}
-      - DIRECT_URL=${DIRECT_URL}
-      - JWT_SECRET=${JWT_SECRET:-rm_admin_jwt_secret_raifasmart_2026}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      POSTGRES_USER: ${POSTGRES_USER:-toolera}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-toolera_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - toolera-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-toolera}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    <<: [*restart, *logging]
+    command: redis-server --requirepass ${REDIS_PASSWORD:-} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - toolera-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    <<: [*restart, *logging]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY}
+    ports:
+      - "9000:9000"   # S3 API — proxied via nginx as media.toolera.store
+    volumes:
+      - minio_data:/data
+    networks:
+      - toolera-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - toolera-net
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 ${STORAGE_ACCESS_KEY} ${STORAGE_SECRET_KEY};
+        mc mb --ignore-existing local/${STORAGE_BUCKET:-toolera-media};
+        mc anonymous set download local/${STORAGE_BUCKET:-toolera-media};
+        echo 'MinIO bucket ready';
+      "
+
+  rabbitmq:
+    image: rabbitmq:3-alpine
+    <<: [*restart, *logging]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-toolera}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - toolera-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    <<: [*restart, *logging]
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - toolera-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    <<: [*restart, *logging]
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - toolera-net
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Backend Services ────────────────────────────────────────────────────────
+
+  store-management:
+    build:
+      context: Backend/store-management
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DATABASE_URL: ${STORE_MANAGEMENT_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      BUSINESS_SERVICE_URL: http://business:5002
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-toolera}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CLIENT_ID: store-management-service
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-toolera-media}
+      STORAGE_REGION: ${STORAGE_REGION:-ap-southeast-1}
+      STORAGE_PUBLIC_URL: https://media.${DOMAIN:-toolera.store}
+      STORAGE_FORCE_PATH_STYLE: "true"
+      SMS_API_KEY: ${SMS_API_KEY:-}
+      SMS_SENDER_ID: ${SMS_SENDER_ID:-}
+      FRONTEND_URL: https://${DOMAIN:-toolera.store}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - toolera-net
+    ports:
+      - "5001:5001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  business:
+    build:
+      context: Backend/business
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      DATABASE_URL: ${BUSINESS_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      STORE_MANAGEMENT_URL: http://store-management:5001
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-toolera}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CLIENT_ID: business-service
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-toolera-media}
+      STORAGE_REGION: ${STORAGE_REGION:-ap-southeast-1}
+      STORAGE_PUBLIC_URL: https://media.${DOMAIN:-toolera.store}
+      STORAGE_FORCE_PATH_STYLE: "true"
+      STEADFAST_API_KEY: ${STEADFAST_API_KEY:-}
+      STEADFAST_SECRET_KEY: ${STEADFAST_SECRET_KEY:-}
+      PATHAO_CLIENT_ID: ${PATHAO_CLIENT_ID:-}
+      PATHAO_CLIENT_SECRET: ${PATHAO_CLIENT_SECRET:-}
+      PATHAO_USERNAME: ${PATHAO_USERNAME:-}
+      PATHAO_PASSWORD: ${PATHAO_PASSWORD:-}
+      PATHAO_STORE_ID: ${PATHAO_STORE_ID:-}
+      FRONTEND_URL: https://${DOMAIN:-toolera.store}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      store-management:
+        condition: service_healthy
+    networks:
+      - toolera-net
+    ports:
+      - "5002:5002"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5002/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: api-gateway
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      STORE_MANAGEMENT_URL: http://store-management:5001
+      BUSINESS_SERVICE_URL: http://business:5002
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      FRONTEND_URL: https://${DOMAIN:-toolera.store}
+    depends_on:
+      store-management:
+        condition: service_healthy
+      business:
+        condition: service_healthy
+    networks:
+      - toolera-net
     ports:
       - "5000:5000"
-    networks:
-      - raifa-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Next.js Frontend Storefront & Admin
-  frontend:
+  # ── Frontend Apps ───────────────────────────────────────────────────────────
+
+  storefront:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    restart: always
+      context: Frontend/storefront
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
     environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:5000/api/v1}
-      - DATABASE_URL=${DATABASE_URL}
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_URL: https://api.${DOMAIN:-toolera.store}
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - toolera-net
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
-    networks:
-      - raifa-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-networks:
-  raifa-network:
-    driver: bridge
+  dashboard:
+    build:
+      context: Frontend/dashboard
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_API_URL: https://api.${DOMAIN:-toolera.store}
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - toolera-net
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
