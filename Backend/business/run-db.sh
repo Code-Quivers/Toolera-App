@@ -137,10 +137,9 @@ EOF
 
     wait_for_port ${DB_PORT}
 
-    echo ">>> Running prisma db push..."
+    echo ">>> Running drizzle-kit push..."
     DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-    DIRECT_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-      npx prisma db push
+      npm run db:push
 
     echo ""
     echo ">>> Verifying tables:"
@@ -151,7 +150,7 @@ EOF
     echo "✅ Push complete."
     ;;
 
-  # ── MIGRATE (prisma migrate deploy — production migrations) ───────────────
+  # ── MIGRATE (drizzle-kit migrate — apply generated SQL migrations) ────────
   migrate)
     echo ">>> Starting port-forward in background on localhost:${DB_PORT}..."
     kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432 &
@@ -160,10 +159,9 @@ EOF
 
     wait_for_port ${DB_PORT}
 
-    echo ">>> Running prisma migrate deploy..."
+    echo ">>> Running drizzle-kit migrate..."
     DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-    DIRECT_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-      npx prisma migrate deploy
+      npm run db:migrate
 
     echo "✅ Migrations applied."
     ;;
@@ -176,10 +174,9 @@ EOF
     wait_for_port ${DB_PORT}
 
     echo ""
-    echo ">>> [2/3] Pushing Prisma schema..."
+    echo ">>> [2/3] Pushing Drizzle schema..."
     DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-    DIRECT_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-      npx prisma db push
+      npm run db:push
 
     echo ""
     echo ">>> [3/3] Tables in DB:"
@@ -201,10 +198,9 @@ EOF
 
     wait_for_port ${DB_PORT}
 
-    echo ">>> Running prisma db seed..."
+    echo ">>> Running db seed..."
     DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-    DIRECT_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
-      npx prisma db seed
+      npm run db:seed
 
     echo "✅ Seed complete."
     ;;
@@ -249,8 +245,8 @@ Usage: bash run-db.sh [command]
 Commands:
   start    Deploy PostgreSQL to Kubernetes (includes port-forward)
   stop     Stop and remove all resources (PVC deleted — data lost)
-  push     Sync schema via prisma db push (dev)
-  migrate  Apply migrations via prisma migrate deploy (prod)
+  push     Sync schema via drizzle-kit push (dev)
+  migrate  Apply SQL migrations via drizzle-kit migrate (prod)
   setup    One-time init: deploy + push schema
   seed     Run prisma db seed
   logs     Watch PostgreSQL logs
