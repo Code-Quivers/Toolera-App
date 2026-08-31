@@ -1,36 +1,18 @@
-import { SetOptions, createClient } from 'redis';
+import Redis from 'ioredis';
 import { config } from '../config/index.js';
 import { errorLogger, infoLogger } from '../utils/logger.js';
 
-const redisClient = createClient({ url: config.redis.url });
-const redisPubClient = createClient({ url: config.redis.url });
-const redisSubClient = createClient({ url: config.redis.url });
+const makeClient = (name: string) =>
+  new Redis(config.redis.url, { lazyConnect: false, enableReadyCheck: true, maxRetriesPerRequest: 3 })
+    .on('connect', () => infoLogger.info(`Redis ${name} connected on URL - ${config.redis.url}`))
+    .on('error', (err: Error) => errorLogger.error(`Redis ${name} error: ${err.message}`));
 
-type RedisEventEmitter = { on(event: string, listener: (...args: any[]) => void): void };
-
-const setupClient = (client: RedisEventEmitter, name: string) => {
-  client.on('error', (error: Error) => {
-    errorLogger.error(`Redis ${name} error: ${error.message}`);
-  });
-
-  client.on('connect', () => {
-    infoLogger.info(`Redis ${name} connected on URL - ${config.redis.url}`);
-  });
-};
-
-setupClient(redisClient, 'client');
-setupClient(redisPubClient, 'pubClient');
-setupClient(redisSubClient, 'subClient');
+const redisClient = makeClient('client');
+const redisPubClient = makeClient('pubClient');
+const redisSubClient = makeClient('subClient');
 
 const connect = async (): Promise<void> => {
-  try {
-    await redisClient.connect();
-    await redisPubClient.connect();
-    await redisSubClient.connect();
-  } catch (error) {
-    errorLogger.error('Failed to connect to Redis', error);
-    process.exit(1);
-  }
+  infoLogger.info('All Redis clients ready (ioredis auto-connects).');
 };
 
 const disconnect = async (): Promise<void> => {
@@ -43,8 +25,11 @@ const disconnect = async (): Promise<void> => {
   }
 };
 
-const set = async (key: string, value: string, options?: SetOptions): Promise<string> => {
-  return (await redisClient.set(key, value, options)) as string;
+const set = async (key: string, value: string, exSeconds?: number): Promise<string> => {
+  if (exSeconds) {
+    return (await redisClient.set(key, value, 'EX', exSeconds)) ?? 'OK';
+  }
+  return (await redisClient.set(key, value)) ?? 'OK';
 };
 
 const get = async (key: string): Promise<string | null> => {
@@ -59,10 +44,8 @@ const expire = async (key: string, seconds: number): Promise<void> => {
   await redisClient.expire(key, seconds);
 };
 
-// Store the access token for a user — set by the auth service via shared Redis
 const setAccessToken = async (userId: string, token: string): Promise<void> => {
-  const key = `access-token:${userId}`;
-  await redisClient.set(key, token, { EX: Number(config.redis.expiresIn) });
+  await set(`access-token:${userId}`, token, Number(config.redis.expiresIn));
 };
 
 const getAccessToken = async (userId: string): Promise<string | null> => {
@@ -73,7 +56,6 @@ const delAccessToken = async (userId: string): Promise<void> => {
   await redisClient.del(`access-token:${userId}`);
 };
 
-// Session-based token lookup (alternative key pattern)
 const getTokenBySessionId = async (sessionId: string): Promise<string | null> => {
   return await redisClient.get(`session:${sessionId}`);
 };
@@ -89,6 +71,7 @@ export const RedisClient = {
   getAccessToken,
   delAccessToken,
   getTokenBySessionId,
-  publish: redisPubClient.publish.bind(redisPubClient),
-  subscribe: redisSubClient.subscribe.bind(redisSubClient),
+  publish: (channel: string, message: string) => redisPubClient.publish(channel, message),
+  subscribe: (channel: string) => redisSubClient.subscribe(channel),
+  subClient: redisSubClient,
 };

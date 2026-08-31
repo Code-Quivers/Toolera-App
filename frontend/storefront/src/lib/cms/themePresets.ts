@@ -88,7 +88,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: CMSSectionItem[] = [
     position: 6,
     enabled: true,
     settings: {
-      title: "Why Shop With Raifa's Mart?",
+      title: "Why Shop With Toolera?",
       subtitle: "We are built on trust, genuine curation, and reliable local support.",
       pillars: [
         { title: "Carefully Selected", description: "We select products worth discovering.", iconName: "Sparkles" },

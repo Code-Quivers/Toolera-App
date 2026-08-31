@@ -141,7 +141,7 @@ export default function AdminReviewsPage() {
   const handleSaveReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyingReview || !replyText.trim()) return;
-    addAdminReply(replyingReview.id, replyText.trim(), "Raifa's Mart Support");
+    addAdminReply(replyingReview.id, replyText.trim(), "Toolera Support");
     setNotification(`Official response posted to ${replyingReview.authorName}'s review!`);
     setReplyingReview(null);
     setReplyText("");
@@ -582,7 +582,7 @@ export default function AdminReviewsPage() {
                         <div className="flex items-center justify-between">
                           <span className="font-black text-blue-900 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                            <span>{rev.adminReply.repliedBy || "Raifa's Mart Support"}</span>
+                            <span>{rev.adminReply.repliedBy || "Toolera Support"}</span>
                           </span>
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-1">

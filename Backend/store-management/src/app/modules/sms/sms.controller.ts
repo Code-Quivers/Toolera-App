@@ -53,7 +53,7 @@ export class SmsController {
 
       const result = await SmsService.sendSms({
         to: phone,
-        message: message || "Hello from Raifa's Mart! Your SMS Gateway is connected and working perfectly.",
+        message: message || "Hello from Toolera! Your SMS Gateway is connected and working perfectly.",
         templateType: 'CUSTOM',
       });
 

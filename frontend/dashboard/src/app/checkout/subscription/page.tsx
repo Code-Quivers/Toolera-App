@@ -128,7 +128,7 @@ function SubscriptionCheckoutContent() {
             </div>
             <div className="flex items-center justify-between text-xs text-slate-600">
               <span>Store:</span>
-              <span className="font-bold text-slate-900">{activeStore?.name || "Raifa's Mart"}</span>
+              <span className="font-bold text-slate-900">{activeStore?.name || "Toolera"}</span>
             </div>
           </div>
 

@@ -88,7 +88,7 @@ export default function AdminPagesPage() {
         content,
         type,
         status,
-        seoTitle: seoTitle || `${title} | Raifa's Mart`,
+        seoTitle: seoTitle || `${title} | Toolera`,
         seoDescription: seoDescription || content.slice(0, 150),
       });
       showNotification(`Page "${title}" updated successfully!`);
@@ -99,7 +99,7 @@ export default function AdminPagesPage() {
         content,
         type,
         status,
-        seoTitle: seoTitle || `${title} | Raifa's Mart`,
+        seoTitle: seoTitle || `${title} | Toolera`,
         seoDescription: seoDescription || content.slice(0, 150),
       });
       showNotification(`New page "${title}" created and published!`);

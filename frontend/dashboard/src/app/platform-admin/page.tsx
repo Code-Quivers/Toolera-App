@@ -26,7 +26,7 @@ export default function PlatformAdminDashboardPage() {
   ];
 
   const recentStores = [
-    { name: "Raifa's Mart", slug: "raifas-mart", owner: "Rahim Chowdhury (admin@raifasmart.com)", plan: "Growth", status: "ACTIVE", products: 4, orders: 16, created: "Aug 30, 2026" },
+    { name: "Toolera", slug: "toolera", owner: "Rahim Chowdhury (admin@toolera.store)", plan: "Growth", status: "ACTIVE", products: 4, orders: 16, created: "Aug 30, 2026" },
     { name: "Gadget World", slug: "gadget-world", owner: "Tanvir Ahmed", plan: "Starter", status: "ACTIVE", products: 18, orders: 42, created: "Aug 28, 2026" },
     { name: "Dhaka Fashion House", slug: "dhaka-fashion", owner: "Sadia Islam", plan: "Pro", status: "ACTIVE", products: 210, orders: 184, created: "Aug 25, 2026" },
     { name: "Organic Bazar BD", slug: "organic-bazar", owner: "Kamal Hossain", plan: "Starter", status: "TRIALING", products: 35, orders: 11, created: "Aug 29, 2026" },

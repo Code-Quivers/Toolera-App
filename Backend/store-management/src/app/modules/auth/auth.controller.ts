@@ -1,12 +1,52 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { db, rdb } from '../../db/index.js';
 import { usersTable, auditLogsTable } from '../../db/schema.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { RedisClient } from '../../shared/redis.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'raifas_mart_super_secure_jwt_secret_token_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'toolera_shared_jwt_secret_dev_2026_min32chars_xK9!';
+
+export async function signup(req: Request, res: Response) {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name?.trim() || !email?.trim() || !password?.trim()) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
+    }
+    if (password.trim().length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const existing = await rdb().select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.email, cleanEmail)).limit(1).then(r => r[0] ?? null);
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password.trim(), 10);
+    const [user] = await db.insert(usersTable).values({
+      name: name.trim(),
+      email: cleanEmail,
+      passwordHash,
+      role: 'OWNER',
+    }).returning({ id: usersTable.id, email: usersTable.email, name: usersTable.name, role: usersTable.role });
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    await RedisClient.setAccessToken(user.id, token);
+
+    return res.status(201).json({ success: true, message: 'Account created successfully!', token, user });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
 
 export async function adminLogin(req: Request, res: Response) {
   try {
@@ -24,7 +64,10 @@ export async function adminLogin(req: Request, res: Response) {
       return res.status(401).json({ success: false, message: 'Invalid credentials. User not found.' });
     }
 
-    const isMatch = user.passwordHash === password.trim() || password.trim() === 'admin123';
+    const isBcrypt = user.passwordHash.startsWith('$2');
+    const isMatch = isBcrypt
+      ? await bcrypt.compare(password.trim(), user.passwordHash)
+      : user.passwordHash === password.trim();
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Incorrect password.' });
     }

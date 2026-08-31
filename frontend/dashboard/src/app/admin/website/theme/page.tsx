@@ -49,7 +49,7 @@ export default function AdminThemePage() {
   }[] = [
     {
       id: "ORIGINAL_RAIFAS_MART",
-      title: "Raifa's Mart Original (Brand Default)",
+      title: "Toolera Original (Brand Default)",
       industry: "Viral Gadgets & Multi-Section DTC",
       badge: "Brand Default Layout",
       description: "Original full modular CMS page layout: Hero Carousel ('Discover What's Trending / China Sourced') + Category Stories + Trending Now with Urgency Meters + Today's Spotlight + Flash Countdown + Shop By Need + Customer Reviews + Trust Bar + Newsletter.",
@@ -156,7 +156,7 @@ export default function AdminThemePage() {
 
   const presets = [
     {
-      name: "Raifa's Mart Official (Brand Default)",
+      name: "Toolera Official (Brand Default)",
       primary: "#008B47",
       accent: "#F9A01B",
       primaryButtonText: "#FFFFFF",
@@ -300,7 +300,7 @@ export default function AdminThemePage() {
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-slate-400 font-bold uppercase">Active Theme:</span>
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-black text-xs">
-              {themeLayouts.find((l) => l.id === activeLayout)?.title || "Raifa's Mart Original"}
+              {themeLayouts.find((l) => l.id === activeLayout)?.title || "Toolera Original"}
             </span>
           </div>
         </div>

@@ -19,8 +19,9 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
+import { setAdminToken, setAdminUser } from "@/lib/auth";
 
-export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "SIGNIN" }) {
+function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "SIGNIN" }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -134,14 +135,17 @@ export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNU
           email: signupEmail.trim().toLowerCase(),
           password: signupPassword.trim(),
         }),
-      }).catch(() => null);
+      });
 
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.token) {
-          localStorage.setItem("rm_token", data.token);
-        }
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.message || "Failed to create account. Please try again.");
+        return;
       }
+
+      if (data.token) setAdminToken(data.token, true);
+      if (data.user) setAdminUser(data.user);
 
       registerMerchant(fullName.trim(), signupEmail.trim().toLowerCase(), signupPassword.trim());
       router.push("/onboarding/store");
@@ -196,18 +200,8 @@ export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNU
 
       {/* Top Left Header Bar */}
       <div className="w-full max-w-7xl mx-auto px-6 sm:px-12 pt-8 relative z-10">
-        <Link href="/" className="inline-flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center p-1.5 transition group-hover:scale-105">
-            <img src="/assets/favicon.png" alt="Raifa's Mart" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <span className="font-black text-slate-900 text-base leading-tight block tracking-tight">
-              Raifa&apos;s Mart
-            </span>
-            <span className="text-[11px] font-extrabold text-[#008B47] uppercase tracking-wider block">
-              Admin CMS
-            </span>
-          </div>
+        <Link href="/" className="inline-flex items-center group">
+          <img src="/logo.png" alt="Toolera" style={{width: 150, height: 150}} className="object-contain transition group-hover:opacity-80" />
         </Link>
       </div>
 
@@ -281,7 +275,7 @@ export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNU
                 <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
                 <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                <span className="text-[11px] font-mono text-slate-400 ml-2">cms.raifasmart.com/analytics</span>
+                <span className="text-[11px] font-mono text-slate-400 ml-2">cms.toolera.store/analytics</span>
               </div>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
@@ -304,8 +298,8 @@ export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNU
           <div className="lg:col-span-6 flex justify-center lg:justify-end">
             <div className="relative w-full max-w-md">
               {/* Floating Top Center Logo Badge */}
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-2xl bg-white border-2 border-emerald-100 shadow-xl flex items-center justify-center p-2 z-20">
-                <img src="/assets/favicon.png" alt="RM" className="w-full h-full object-contain" />
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-white border-2 border-emerald-100 shadow-xl rounded-2xl flex items-center justify-center px-4 py-2 z-20">
+                <img src="/logo.png" alt="Toolera" className="h-8 w-auto object-contain" />
               </div>
 
               {/* Main White Container */}
@@ -716,7 +710,7 @@ export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNU
         </div>
 
         <div className="text-[11px] text-slate-400 font-medium">
-          &copy; {new Date().getFullYear()} Raifa&apos;s Mart Platform. All rights reserved.
+          &copy; {new Date().getFullYear()} Toolera Platform. All rights reserved.
         </div>
       </div>
     </div>

@@ -2,6 +2,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 
+export interface CategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+  parentId?: string | null;
+  position?: number;
+  isActive?: boolean;
+  productCount?: number;
+  itemCount?: number;
+  createdAt?: string;
+}
+
 export function useCategoryStore() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

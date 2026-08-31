@@ -160,7 +160,7 @@ export function FashionLifestyleTheme() {
               </div>
 
               <div className="space-y-1 text-center">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Raifa Signature</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400">Toolera Signature</div>
                 <h4 className="font-bold text-xs text-slate-900 truncate">{p.title}</h4>
                 <div className="font-black text-xs text-slate-950">৳{p.price.toLocaleString()}</div>
               </div>

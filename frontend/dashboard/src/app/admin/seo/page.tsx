@@ -4,11 +4,11 @@ import React, { useState } from "react";
 import { Search, Globe, CheckCircle2 } from "lucide-react";
 
 export default function AdminSeoPage() {
-  const [metaTitle, setMetaTitle] = useState("Raifa's Mart — Curated China Finds for Bangladesh");
+  const [metaTitle, setMetaTitle] = useState("Toolera — Curated China Finds for Bangladesh");
   const [metaDescription, setMetaDescription] = useState(
     "Discover trendy, smart, useful, and unique China products curated for modern Bangladesh lifestyles. 100% genuine quality, Cash on Delivery, and express shipping."
   );
-  const [canonicalUrl, setCanonicalUrl] = useState("https://raifasmart.com");
+  const [canonicalUrl, setCanonicalUrl] = useState("https://toolera.store");
   const [notification, setNotification] = useState<string | null>(null);
 
   const handleSave = (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function AdminSeoPage() {
         </h3>
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 font-sans space-y-1">
           <div className="text-[11px] text-slate-500 flex items-center gap-1 font-mono truncate">
-            <span>https://raifasmart.com</span>
+            <span>https://toolera.store</span>
             <span>› bangladesh › china-gadgets</span>
           </div>
           <div className="text-base text-blue-700 hover:underline font-medium cursor-pointer">

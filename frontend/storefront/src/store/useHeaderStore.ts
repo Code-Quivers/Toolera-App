@@ -17,7 +17,7 @@ export const defaultHeaderSettings = {
 };
 
 export function useHeaderStore() {
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<any>(defaultHeaderSettings);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

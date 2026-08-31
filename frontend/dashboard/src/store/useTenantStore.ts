@@ -22,16 +22,20 @@ export interface StoreModel {
     status: string;
     billingCycle: string;
     currentPeriodEnd: string;
-    plan?: { name: string; priceMonthly: number; priceYearly: number; maxProducts: number; maxOrdersPerMonth: number };
+    plan?: { name: string; priceMonthly: number; priceYearly: number; maxProducts: number; maxOrdersPerMonth: number; maxStaffMembers: number; maxStorageMb: number };
   } | null;
   members?: any[];
   createdAt: string;
 }
 
+const CACHE_KEY = "rm_active_store_cache";
+
 export function useTenantStore() {
   const [stores, setStores] = useState<StoreModel[]>([]);
-  const [activeStore, setActiveStoreState] = useState<StoreModel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeStore, setActiveStoreState] = useState<StoreModel | null>(() => {
+    try { const c = localStorage.getItem(CACHE_KEY); return c ? JSON.parse(c) : null; } catch { return null; }
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [isPaymentPending, setIsPaymentPendingState] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -45,8 +49,9 @@ export function useTenantStore() {
       if (store?.id) {
         setStores([store]);
         setActiveStoreState(store);
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(store)); } catch {}
         const sub = store.subscription;
-        const pending = !sub || ["PENDING", "UNPAID", "TRIALING"].includes(sub.status) || sub.status !== "ACTIVE";
+        const pending = !sub || sub.status === "PENDING" || sub.status === "UNPAID" || sub.status === "CANCELLED" || sub.status === "EXPIRED";
         setIsPaymentPendingState(pending);
       }
     } catch {} finally { setIsLoading(false); }

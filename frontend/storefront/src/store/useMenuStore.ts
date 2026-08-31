@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { sfApi } from "@/lib/api/storefront";
 
 export interface MenuItemData {
@@ -8,6 +8,10 @@ export interface MenuItemData {
   href: string;
   children?: MenuItemData[];
 }
+
+export const DEFAULT_MENUS = [
+  { id: "main", label: "Main Menu", location: "header", items: [] as any[] },
+];
 
 export function useMenuStore() {
   const [menus, setMenus] = useState<any[]>([]);
@@ -18,5 +22,15 @@ export function useMenuStore() {
     sfApi.getMenus().then(d => setMenus(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setIsLoading(false));
   }, []);
 
-  return { menus, isLoading };
+  const getMenuByLocation = useCallback(
+    (location: string) => menus.find((m: any) => m.location === location) ?? null,
+    [menus]
+  );
+
+  const getActiveMenu = useCallback(
+    () => menus[0] ?? null,
+    [menus]
+  );
+
+  return { menus, isLoading, getMenuByLocation, getActiveMenu };
 }

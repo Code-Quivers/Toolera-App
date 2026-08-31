@@ -72,7 +72,7 @@ export function Header() {
 
   // Render Brand Logo
   const renderLogo = () => {
-    const logoImg = headerSettings.logoImageUrl || "/assets/RaifasMart Logo.png";
+    const logoImg = headerSettings.logoImageUrl || "/logo.png";
     const isImageMode = headerSettings.logoType === "IMAGE" || !headerSettings.logoText;
 
     return (
@@ -82,7 +82,7 @@ export function Header() {
             {/* Mobile Logo */}
             <img
               src={logoImg}
-              alt="Raifa's Mart"
+              alt="Toolera"
               style={{
                 maxHeight: `${headerSettings.mobileLogoHeight || 36}px`,
                 maxWidth: `${headerSettings.mobileLogoWidth || 150}px`,
@@ -94,7 +94,7 @@ export function Header() {
             {/* Desktop Logo */}
             <img
               src={logoImg}
-              alt="Raifa's Mart"
+              alt="Toolera"
               style={{
                 maxHeight: `${headerSettings.logoHeight || 48}px`,
                 maxWidth: `${headerSettings.logoWidth || 220}px`,

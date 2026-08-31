@@ -34,13 +34,13 @@ export const DEFAULT_THEME: ThemeSettingsState = {
   sectionSpacing: "4rem",
 };
 
-const CMS_KEY = "raifas_mart_cms_engine_v3";
-const THEME_KEY = "raifas_mart_theme_v1";
+const CMS_KEY = "toolera_cms_engine_v3";
+const THEME_KEY = "toolera_theme_v1";
 
 function loadCms() {
   if (typeof window === "undefined") return { draftSections: DEFAULT_HOMEPAGE_SECTIONS, publishedSections: DEFAULT_HOMEPAGE_SECTIONS };
   try {
-    for (const k of [CMS_KEY, "raifas_mart_cms_engine_v2", "raifas_mart_cms_engine"]) {
+    for (const k of [CMS_KEY, "toolera_cms_engine_v2", "toolera_cms_engine"]) {
       const raw = localStorage.getItem(k);
       if (raw) {
         const p = JSON.parse(raw);

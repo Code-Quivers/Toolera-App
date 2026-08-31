@@ -2,7 +2,7 @@
   "columnsCount": 4,
   "brandLogoType": "IMAGE",
   "brandTitle": "RAIFA'S MART",
-  "brandLogoUrl": "/assets/RaifasMart Logo Footer.png",
+  "brandLogoUrl": "/logo.png",
   "brandLogoWidth": 160,
   "brandLogoHeight": 40,
   "mobileBrandLogoWidth": 120,
@@ -10,7 +10,7 @@
   "description": "Discover what's trending. We curate unique, smart, and useful lifestyle products from China with direct quality inspection for shoppers in Bangladesh.",
   "address": "Goneshpur, Terminal, Rangpur, Bangladesh",
   "phone": "+880 0164-7221566",
-  "email": "support@raifasmart.com",
+  "email": "support@toolera.store",
   "col2Title": "SHOP",
   "col2Links": [
     {
@@ -83,7 +83,7 @@
   "facebookUrl": "https://facebook.com",
   "instagramUrl": "https://instagram.com",
   "whatsappNumber": "+880 1712-345678",
-  "copyrightText": "© 2026 Raifa's Mart. All rights reserved. Curated for Bangladesh.",
+  "copyrightText": "© 2026 Toolera. All rights reserved. Curated for Bangladesh.",
   "bottomLinks": [
     {
       "id": "bfl-1",

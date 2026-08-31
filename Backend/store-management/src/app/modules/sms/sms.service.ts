@@ -176,7 +176,7 @@ export class SmsService {
       customer_name: order.customerName,
       order_number: order.orderNumber,
       total: order.total,
-      store_name: "Raifa's Mart",
+      store_name: "Toolera",
     });
 
     return this.sendSms({ to: order.customerPhone, message: formatted, templateType: 'ORDER_PLACED' });
@@ -191,7 +191,7 @@ export class SmsService {
       order_number: order.orderNumber,
       courier_name: providerName,
       tracking_code: trackingCode,
-      store_name: "Raifa's Mart",
+      store_name: "Toolera",
     });
 
     return this.sendSms({ to: order.customerPhone, message: formatted, templateType: 'ORDER_SHIPPED' });

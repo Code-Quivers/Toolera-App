@@ -31,6 +31,35 @@ const updateStoreSchema = z.object({
 });
 
 export const storeController = {
+  async getMyStore(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const membership = await rdb().select({ storeId: storeMembersTable.storeId })
+        .from(storeMembersTable)
+        .where(and(eq(storeMembersTable.userId, userId), eq(storeMembersTable.status, 'ACTIVE')))
+        .orderBy(storeMembersTable.storeId)
+        .limit(1)
+        .then(r => r[0] ?? null);
+
+      if (!membership) return res.status(404).json({ success: false, message: 'No store found for this user.' });
+
+      const store = await rdb().query.storesTable.findFirst({
+        where: and(eq(storesTable.id, membership.storeId), isNull(storesTable.deletedAt)),
+        with: {
+          subscription: { with: { plan: true } },
+          members: { with: { user: { columns: { id: true, name: true, email: true, role: true } } } },
+        },
+      });
+
+      if (!store) return res.status(404).json({ success: false, message: 'Store not found.' });
+      return res.json({ success: true, data: store });
+    } catch (error: any) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
   async listStores(req: Request, res: Response) {
     try {
       const stores = await rdb().query.storesTable.findMany({
@@ -193,6 +222,22 @@ export const storeController = {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ success: false, message: error.errors[0]?.message || 'Validation error' });
       }
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  async checkSlug(req: Request, res: Response) {
+    try {
+      const slug = req.params.slug?.toLowerCase().trim();
+      if (!slug || slug.length < 2) {
+        return res.status(400).json({ success: false, message: 'Slug must be at least 2 characters.' });
+      }
+      if (!/^[a-z0-9-]+$/.test(slug)) {
+        return res.json({ available: false, message: 'Slug may only contain lowercase letters, numbers, and hyphens.' });
+      }
+      const existing = await rdb().select({ id: storesTable.id }).from(storesTable).where(eq(storesTable.slug, slug)).limit(1).then(r => r[0] ?? null);
+      return res.json({ available: !existing, slug });
+    } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
   },

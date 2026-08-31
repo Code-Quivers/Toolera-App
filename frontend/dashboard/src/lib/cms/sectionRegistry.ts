@@ -83,7 +83,7 @@ export const TrustPillarItemSchema = z.object({
 });
 
 export const TrustSettingsSchema = z.object({
-  title: z.string().default("Why Shop With Raifa's Mart?"),
+  title: z.string().default("Why Shop With Toolera?"),
   subtitle: z.string().default("We are built on trust, genuine curation, and reliable local support."),
   pillars: z.array(TrustPillarItemSchema),
 });
@@ -262,7 +262,7 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     iconName: "ShieldCheck",
     schema: TrustSettingsSchema,
     defaultSettings: {
-      title: "Why Shop With Raifa's Mart?",
+      title: "Why Shop With Toolera?",
       subtitle: "We are built on trust, genuine curation, and reliable local support.",
       pillars: [
         { title: "Carefully Selected", description: "We select products worth discovering.", iconName: "Sparkles" },

@@ -26,7 +26,7 @@ const DEFAULT_CURATED_REVIEWS: ReviewItem[] = [
     authorName: "Nusrat Jahan",
     authorLocation: "Chittagong",
     rating: 5,
-    comment: "Cash on delivery was super smooth. The item quality matches exactly as shown in photos. Will definitely shop again from Raifa's Mart!",
+    comment: "Cash on delivery was super smooth. The item quality matches exactly as shown in photos. Will definitely shop again from Toolera!",
     avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80",
     verifiedPurchase: true,
     status: "APPROVED",

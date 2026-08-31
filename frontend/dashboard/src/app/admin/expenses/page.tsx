@@ -73,10 +73,10 @@ export default function AdminExpensesPage() {
   const handleOpenEdit = (exp: ExpenseItem) => {
     setEditingExpense(exp);
     setTitle(exp.title);
-    setCategory(exp.category);
+    setCategory(exp.category ?? "");
     setAmount(exp.amount.toString());
-    setDate(exp.date);
-    setPaymentMethod(exp.paymentMethod);
+    setDate(exp.date ?? "");
+    setPaymentMethod(exp.paymentMethod ?? "");
     setReferenceNumber(exp.referenceNumber || "");
     setNotes(exp.notes || "");
     setModalOpen(true);

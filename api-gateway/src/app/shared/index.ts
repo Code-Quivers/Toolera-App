@@ -6,7 +6,21 @@ export function proxyTo(target: string, pathRewrite?: Record<string, string>) {
     target,
     changeOrigin: true,
     on: {
-      error: (err, req, res: any) => {
+      proxyReq: (proxyReq, req: any) => {
+        // Express strips the mount prefix from req.url — restore the full path
+        if (req.originalUrl) {
+          const parsed = new URL(req.originalUrl, 'http://localhost');
+          proxyReq.path = parsed.pathname + parsed.search;
+        }
+        // express.json() consumes the body stream — rewrite it onto the proxy request
+        if (req.body && Object.keys(req.body).length > 0) {
+          const body = JSON.stringify(req.body);
+          proxyReq.setHeader('Content-Type', 'application/json');
+          proxyReq.setHeader('Content-Length', Buffer.byteLength(body));
+          proxyReq.write(body);
+        }
+      },
+      error: (_err, _req, res: any) => {
         res.status(502).json({ success: false, message: 'Service temporarily unavailable' });
       },
     },

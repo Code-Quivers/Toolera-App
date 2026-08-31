@@ -40,7 +40,7 @@ export function ProductGallery({ images, videoUrl, videoThumbnail, title }: Prod
       list.push({
         type: "VIDEO" as const,
         url: videoUrl.trim(),
-        thumbnail: videoThumbnail || images[0] || "/assets/RaifasMart Logo.png",
+        thumbnail: videoThumbnail || images[0] || "/logo.png",
       });
     }
 

@@ -105,8 +105,8 @@ export function Footer() {
                 <>
                   {/* Mobile Footer Logo */}
                   <img
-                    src={settings.brandLogoUrl || "/assets/RaifasMart Logo Footer.png"}
-                    alt={settings.brandTitle || "Raifa's Mart"}
+                    src={settings.brandLogoUrl || "/logo.png"}
+                    alt={settings.brandTitle || "Toolera"}
                     style={{
                       maxHeight: `${settings.mobileBrandLogoHeight || 36}px`,
                       maxWidth: `${settings.mobileBrandLogoWidth || 150}px`,
@@ -117,8 +117,8 @@ export function Footer() {
                   />
                   {/* Desktop Footer Logo */}
                   <img
-                    src={settings.brandLogoUrl || "/assets/RaifasMart Logo Footer.png"}
-                    alt={settings.brandTitle || "Raifa's Mart"}
+                    src={settings.brandLogoUrl || "/logo.png"}
+                    alt={settings.brandTitle || "Toolera"}
                     style={{
                       maxHeight: `${settings.brandLogoHeight || 46}px`,
                       maxWidth: `${settings.brandLogoWidth || 200}px`,

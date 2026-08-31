@@ -154,7 +154,7 @@ function OrderSuccessContent() {
               </span>
             </div>
             <a
-              href={`https://wa.me/${siteConfig.contact.whatsapp.replace(/\+/g, "")}?text=Hi%20Raifa's%20Mart,%20I%20just%20placed%20order%20${order?.orderNumber || orderId}`}
+              href={`https://wa.me/${siteConfig.contact.whatsapp.replace(/\+/g, "")}?text=Hi%20Toolera,%20I%20just%20placed%20order%20${order?.orderNumber || orderId}`}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition shrink-0"

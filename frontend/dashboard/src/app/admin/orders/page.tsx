@@ -381,7 +381,7 @@ function AdminOrdersContent() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `RaifasMart_Orders_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `Toolera_Orders_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -897,7 +897,7 @@ function AdminOrdersContent() {
 
                     {/* Sender Info Footer */}
                     <div className="pt-2 border-t border-slate-300 text-[10px] text-slate-500 flex items-center justify-between">
-                      <span>Sender: Raifa's Mart (Dhaka)</span>
+                      <span>Sender: Toolera (Dhaka)</span>
                       <span>Helpline: 01712-345678</span>
                     </div>
                   </div>
@@ -992,9 +992,9 @@ function AdminOrdersContent() {
                 {selectedOrder.phone && (
                   <a
                     href={`https://wa.me/${selectedOrder.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                      `Assalamu Alaikum ${selectedOrder.customer},\n\nYour order #${selectedOrder.id} with Raifa's Mart has been processed.\n\nItems:\n${selectedOrder.items
+                      `Assalamu Alaikum ${selectedOrder.customer},\n\nYour order #${selectedOrder.id} with Toolera has been processed.\n\nItems:\n${selectedOrder.items
                         ?.map((i) => `• ${i.title} x${i.qty} — ৳${i.price * i.qty}`)
-                        .join("\n")}\n\nTotal Payable: ৳${selectedOrder.total}\nDelivery Address: ${selectedOrder.address}, ${selectedOrder.district}\nStatus: ${selectedOrder.status}\n\nThank you for shopping with Raifa's Mart!`
+                        .join("\n")}\n\nTotal Payable: ৳${selectedOrder.total}\nDelivery Address: ${selectedOrder.address}, ${selectedOrder.district}\nStatus: ${selectedOrder.status}\n\nThank you for shopping with Toolera!`
                     )}`}
                     target="_blank"
                     rel="noreferrer"
@@ -1100,7 +1100,7 @@ function AdminOrdersContent() {
                 <div className="w-3 h-3 rounded-full bg-emerald-500 mt-1 shrink-0 ring-4 ring-emerald-100" />
                 <div>
                   <div className="font-bold text-xs text-slate-900">Consignment Handed Over to Courier</div>
-                  <div className="text-[10px] text-slate-400">Order dispatched from Raifa's Mart Hub</div>
+                  <div className="text-[10px] text-slate-400">Order dispatched from Toolera Hub</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">

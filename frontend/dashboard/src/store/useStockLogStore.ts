@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 
+export type StockLogType = "IN" | "OUT" | "ADJUSTMENT" | "RETURN" | "DAMAGE" | string;
+
 export function useStockLogStore() {
   const [stockLogs, setStockLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

@@ -17,7 +17,7 @@ export default function AccountSettingsPage() {
   const { adminUser, updateProfile, changePassword, logout } = useAdminAuthStore();
 
   const [name, setName] = useState(adminUser?.name || "Rahim Chowdhury");
-  const [email, setEmail] = useState(adminUser?.email || "admin@raifasmart.com");
+  const [email, setEmail] = useState(adminUser?.email || "admin@toolera.store");
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");

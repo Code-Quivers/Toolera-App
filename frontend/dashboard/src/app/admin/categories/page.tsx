@@ -115,7 +115,7 @@ export default function AdminCategoriesPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `raifas-mart-categories-${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `toolera-categories-${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -425,7 +425,7 @@ export default function AdminCategoriesPage() {
                 <label className="font-bold text-slate-700">Description</label>
                 <textarea
                   rows={2}
-                  value={editingCategory.description}
+                  value={editingCategory.description ?? ""}
                   onChange={(e) =>
                     setEditingCategory({ ...editingCategory, description: e.target.value })
                   }
@@ -435,7 +435,7 @@ export default function AdminCategoriesPage() {
 
               <div>
                 <ImageUploader
-                  value={editingCategory.image}
+                  value={editingCategory.image ?? undefined}
                   onChange={(url) => setEditingCategory({ ...editingCategory, image: url })}
                   label="Category Thumbnail Picture"
                   recommendedDimensions="400x400 px Square"

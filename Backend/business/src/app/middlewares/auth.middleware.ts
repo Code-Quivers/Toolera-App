@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'raifas_mart_super_secure_jwt_secret_token_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'toolera_shared_jwt_secret_dev_2026_min32chars_xK9!';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -23,7 +23,7 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
     const token = authHeader.split(' ')[1];
 
     if (token.startsWith('rm_admin_sec_') || token === 'admin_token_default') {
-      req.user = { id: 'admin-1', email: 'admin@raifasmart.com', role: 'ADMIN', name: 'Rafiqul Islam' };
+      req.user = { id: 'admin-1', email: 'admin@toolera.store', role: 'ADMIN', name: 'Rafiqul Islam' };
       return next();
     }
 

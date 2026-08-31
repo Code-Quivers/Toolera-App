@@ -71,6 +71,7 @@ export const api = {
   updateStore: (data: unknown) => apiFetch<any>("/api/v1/stores/me", { method: "PATCH", body: JSON.stringify(data) }),
 
   // ── Subscription ───────────────────────────────────────────────────────────
+  getPlans: () => apiFetch<any[]>("/api/v1/subscriptions/plans"),
   getSubscription: () => apiFetch<any>("/api/v1/subscriptions/me"),
   createSubscription: (data: unknown) => apiFetch<any>("/api/v1/subscriptions", { method: "POST", body: JSON.stringify(data) }),
 
@@ -106,4 +107,40 @@ export const api = {
 
   // ── Stock logs ────────────────────────────────────────────────────────────
   getStockLogs: (params = "") => apiFetch<any[]>(`/api/v1/stock-logs${params}`),
+
+  // ── CMS config (SEO / pixels) ─────────────────────────────────────────────
+  getCmsConfig: () => apiFetch<any>("/api/v1/settings/cms"),
+  updateCmsConfig: (data: unknown) => apiFetch<any>("/api/v1/settings/cms", { method: "PUT", body: JSON.stringify(data) }),
+  updateSeoSettings: (data: unknown) => apiFetch<any>("/api/v1/settings/seo", { method: "PUT", body: JSON.stringify(data) }),
+
+  // ── Courier / delivery ────────────────────────────────────────────────────
+  getCourierSettings: () => apiFetch<any>("/api/v1/settings/courier"),
+  updateCourierSettings: (data: unknown) => apiFetch<any>("/api/v1/settings/courier", { method: "PUT", body: JSON.stringify(data) }),
+  getCourierBalance: () => apiFetch<any>("/api/v1/settings/courier/balance"),
+  testPathaoConnection: () => apiFetch<any>("/api/v1/settings/courier/test-pathao"),
+
+  // ── SMS gateway ───────────────────────────────────────────────────────────
+  getSmsSettings: () => apiFetch<any>("/api/v1/settings/sms"),
+  updateSmsSettings: (data: unknown) => apiFetch<any>("/api/v1/settings/sms", { method: "PUT", body: JSON.stringify(data) }),
+  getSmsBalance: () => apiFetch<any>("/api/v1/settings/sms/balance"),
+  sendTestSms: (phone: string, message: string) => apiFetch<any>("/api/v1/settings/sms/test", { method: "POST", body: JSON.stringify({ phone, message }) }),
+
+  // ── Payment gateways ──────────────────────────────────────────────────────
+  getPaymentSettings: () => apiFetch<any>("/api/v1/settings/payment"),
+  updatePaymentSettings: (data: unknown) => apiFetch<any>("/api/v1/settings/payment", { method: "PUT", body: JSON.stringify(data) }),
+
+  // ── Backup / restore ──────────────────────────────────────────────────────
+  exportBackup: () => apiFetch<any>("/api/v1/settings/backup/export"),
+  restoreBackup: (data: unknown) => apiFetch<any>("/api/v1/settings/backup/restore", { method: "POST", body: JSON.stringify(data) }),
+
+  // ── Abandoned leads ───────────────────────────────────────────────────────
+  getAbandonedLeads: (params = "") => apiFetch<any>(`/api/v1/abandoned-leads${params}`),
+  markLeadRecovered: (id: string) => apiFetch<any>(`/api/v1/abandoned-leads/${id}/recovered`, { method: "PATCH" }),
+
+  // ── Courier booking / tracking ────────────────────────────────────────────
+  bookCourier: (data: unknown) => apiFetch<any>("/api/v1/courier/book", { method: "POST", body: JSON.stringify(data) }),
+  trackCourier: (trackingId: string) => apiFetch<any>(`/api/v1/courier/track/${trackingId}`),
+
+  // ── Bulk product operations ───────────────────────────────────────────────
+  bulkUpdateProducts: (data: unknown) => apiFetch<any>("/api/v1/products/bulk", { method: "PATCH", body: JSON.stringify(data) }),
 };

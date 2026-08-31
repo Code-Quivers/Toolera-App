@@ -75,7 +75,7 @@ export default function AdminAnalyticsPage() {
 
   const estimatedCOGS = isRealData
     ? filteredOrders.reduce((sum, order) => {
-        const orderCOGS = order.items.reduce((itemSum, it) => {
+        const orderCOGS = order.items.reduce((itemSum: number, it: any) => {
           const prod = products.find((p) => p.title.toLowerCase() === it.title.toLowerCase() || p.id === it.id);
           const unitCost = prod?.costPrice ? prod.costPrice : it.price * 0.55;
           return itemSum + unitCost * (it.qty || 1);
@@ -100,7 +100,7 @@ export default function AdminAnalyticsPage() {
   const productSalesMap: Record<string, { title: string; qty: number; revenue: number; image?: string; cogs: number }> = {};
   if (isRealData) {
     filteredOrders.forEach((o) => {
-      o.items.forEach((it) => {
+      o.items.forEach((it: any) => {
         const key = it.title;
         const prod = products.find((p) => p.title.toLowerCase() === it.title.toLowerCase() || p.id === it.id);
         const cost = prod?.costPrice || it.price * 0.55;

@@ -114,11 +114,13 @@ export const subscriptionPlansTable = pgTable('SubscriptionPlan', {
   maxProducts: integer('maxProducts').notNull().default(50),
   maxOrdersPerMonth: integer('maxOrdersPerMonth').notNull().default(100),
   maxStaffMembers: integer('maxStaffMembers').notNull().default(2),
+  maxStorageMb: integer('maxStorageMb').notNull().default(500),
   allowCustomDomain: boolean('allowCustomDomain').notNull().default(false),
   allowCourierIntegration: boolean('allowCourierIntegration').notNull().default(false),
   allowSmsGateway: boolean('allowSmsGateway').notNull().default(false),
   allowAnalytics: boolean('allowAnalytics').notNull().default(false),
   prioritySupport: boolean('prioritySupport').notNull().default(false),
+  trialDays: integer('trialDays').notNull().default(0),
   isActive: boolean('isActive').notNull().default(true),
   position: integer('position').notNull().default(0),
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
@@ -255,7 +257,7 @@ export const headerSettingsTable = pgTable('HeaderSettings', {
 export const footerSettingsTable = pgTable('FooterSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
   columns: jsonb('columns'),
-  copyrightText: text('copyrightText').notNull().default("© 2026 Raifa's Mart. All rights reserved. Curated for Bangladesh."),
+  copyrightText: text('copyrightText').notNull().default("© 2026 Toolera. All rights reserved. Curated for Bangladesh."),
   socialLinks: jsonb('socialLinks'),
   paymentBadgesActive: boolean('paymentBadgesActive').notNull().default(true),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
@@ -607,11 +609,11 @@ export const promotionsTable = pgTable('Promotion', {
 
 export const siteSettingsTable = pgTable('SiteSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
-  storeName: text('storeName').notNull().default("Raifa's Mart"),
+  storeName: text('storeName').notNull().default("Toolera"),
   tagline: text('tagline').notNull().default("Discover What's Trending. Smart Finds. Better Prices."),
   phone: text('phone').notNull().default('+880 1712-345678'),
   whatsapp: text('whatsapp').notNull().default('+8801712345678'),
-  email: text('email').notNull().default('support@raifasmart.com'),
+  email: text('email').notNull().default('support@toolera.store'),
   address: text('address').notNull().default('Gulshan-1, Dhaka-1212, Bangladesh'),
   currencySymbol: text('currencySymbol').notNull().default('৳'),
   timezone: text('timezone').notNull().default('Asia/Dhaka'),
@@ -658,8 +660,8 @@ export const featureFlagsTable = pgTable('FeatureFlag', {
 
 export const seoSettingsTable = pgTable('SeoSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
-  defaultTitle: text('defaultTitle').notNull().default("Raifa's Mart — Discover What's Trending"),
-  titleTemplate: text('titleTemplate').notNull().default("%s | Raifa's Mart"),
+  defaultTitle: text('defaultTitle').notNull().default("Toolera — Discover What's Trending"),
+  titleTemplate: text('titleTemplate').notNull().default("%s | Toolera"),
   defaultDescription: text('defaultDescription').notNull().default("Discover what's trending. Smart finds, useful gadgets, and lifestyle essentials curated from China for Bangladesh."),
   defaultOgImage: text('defaultOgImage'),
   googleVerification: text('googleVerification'),
@@ -690,11 +692,11 @@ export const smsSettingsTable = pgTable('SmsSettings', {
   senderId: text('senderId'),
   enabled: boolean('enabled').notNull().default(true),
   orderPlacedEnabled: boolean('orderPlacedEnabled').notNull().default(true),
-  orderPlacedTemplate: text('orderPlacedTemplate').notNull().default("Dear {customer_name}, your order #{order_number} for BDT {total} is confirmed at Raifa's Mart! Helpline: 01712-345678"),
+  orderPlacedTemplate: text('orderPlacedTemplate').notNull().default("Dear {customer_name}, your order #{order_number} for BDT {total} is confirmed at Toolera! Helpline: 01712-345678"),
   orderShippedEnabled: boolean('orderShippedEnabled').notNull().default(true),
   orderShippedTemplate: text('orderShippedTemplate').notNull().default('Dear {customer_name}, your parcel #{order_number} is dispatched via {courier_name}. Tracking ID: {tracking_code}.'),
   orderDeliveredEnabled: boolean('orderDeliveredEnabled').notNull().default(true),
-  orderDeliveredTemplate: text('orderDeliveredTemplate').notNull().default("Dear {customer_name}, your order #{order_number} has been delivered. Thank you for shopping with Raifa's Mart!"),
+  orderDeliveredTemplate: text('orderDeliveredTemplate').notNull().default("Dear {customer_name}, your order #{order_number} has been delivered. Thank you for shopping with Toolera!"),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
 });
 

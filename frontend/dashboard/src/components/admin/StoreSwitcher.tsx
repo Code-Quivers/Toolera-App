@@ -53,7 +53,7 @@ export function StoreSwitcher() {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [isOpen]);
 
-  const currentStoreName = activeStore?.name || "Raifa's Mart";
+  const currentStoreName = activeStore?.name || "Toolera";
   const planBadge = currentPlan?.name || "PRO";
 
   return (

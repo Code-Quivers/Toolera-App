@@ -54,6 +54,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { store: activeStore, isPaymentPending } = useStore();
   const counts = useAdminCounts();
 
+  // Base URL: /seller/{slug} when we know the slug, /admin as fallback
+  const storeSlug = activeStore?.slug;
+  const adminBase = storeSlug ? `/seller/${storeSlug}` : "/admin";
+
+  // Normalised pathname strips the /seller/:slug prefix so active-link
+  // comparisons work the same regardless of which base is in the URL bar.
+  const normPath = pathname.replace(/^\/seller\/[^/]+/, "/admin");
+
   const [authChecked, setAuthChecked] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileRef = React.useRef<HTMLDivElement>(null);
@@ -77,11 +85,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, checkSession, router, authLoading]);
 
+  // Redirect /admin[/:path] → /seller/:storeSlug[/:path] once store slug is known
   useEffect(() => {
-    if (isPaymentPending && pathname !== "/admin" && pathname !== "/admin/billing") {
-      router.replace("/admin/billing");
+    if (!storeSlug) return;
+    if (pathname.startsWith("/admin")) {
+      const tail = pathname.slice("/admin".length); // "" | "/products" | etc.
+      router.replace(`/seller/${storeSlug}${tail}`);
     }
-  }, [isPaymentPending, pathname, router]);
+  }, [storeSlug, pathname, router]);
+
+  useEffect(() => {
+    if (isPaymentPending && normPath !== "/admin" && normPath !== "/admin/billing") {
+      router.replace(`${adminBase}/billing`);
+    }
+  }, [isPaymentPending, normPath, router, adminBase]);
 
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
@@ -115,14 +132,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (pathname === "/admin/orders") {
+    if (normPath === "/admin/orders") {
       setSeenOrdersCount(counts.orders);
       localStorage.setItem("admin_seen_orders_count", String(counts.orders));
     }
-  }, [pathname, counts.orders]);
+  }, [normPath, counts.orders]);
 
   useEffect(() => {
-    if (pathname === "/admin/customers") {
+    if (normPath === "/admin/customers") {
       setSeenCustomersCount(counts.customers);
       localStorage.setItem("admin_seen_customers_count", String(counts.customers));
     }
@@ -131,79 +148,80 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const newOrdersCount = Math.max(0, counts.orders - seenOrdersCount);
   const newCustomersCount = Math.max(0, counts.customers - seenCustomersCount);
 
+  const b = adminBase; // shorthand
   const navGroups = [
     {
       label: "STORE",
       items: [
-        { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/admin/analytics", label: "Analytics & Reports", icon: BarChart3 },
+        { href: `${b}`, label: "Dashboard", icon: LayoutDashboard },
+        { href: `${b}/analytics`, label: "Analytics & Reports", icon: BarChart3 },
       ],
     },
     {
       label: "STORE MANAGEMENT",
       items: [
-        { href: "/admin/settings/store", label: "Store Settings", icon: Store, badge: isPaymentPending ? "Setup" : "Active" },
-        { href: "/admin/billing", label: "Subscription & Billing", icon: Zap, badge: isPaymentPending ? "PAY NOW" : "PRO" },
+        { href: `${b}/settings/store`, label: "Store Settings", icon: Store, badge: isPaymentPending ? "Setup" : "Active" },
+        { href: `${b}/billing`, label: "Subscription & Billing", icon: Zap, badge: isPaymentPending ? "PAY NOW" : "Active" },
       ],
     },
     {
       label: "WEBSITE",
       items: [
-        { href: "/admin/website/homepage", label: "Homepage", icon: Sliders },
-        { href: "/admin/website/pages", label: "Pages", icon: FileText },
-        { href: "/admin/website/navigation", label: "Menu", icon: NavigationIcon },
-        { href: "/admin/website/header", label: "Header", icon: Bell },
-        { href: "/admin/website/footer", label: "Footer", icon: Globe },
-        { href: "/admin/website/theme", label: "Theme Customizer", icon: Palette },
+        { href: `${b}/website/homepage`, label: "Homepage", icon: Sliders },
+        { href: `${b}/website/pages`, label: "Pages", icon: FileText },
+        { href: `${b}/website/navigation`, label: "Menu", icon: NavigationIcon },
+        { href: `${b}/website/header`, label: "Header", icon: Bell },
+        { href: `${b}/website/footer`, label: "Footer", icon: Globe },
+        { href: `${b}/website/theme`, label: "Theme Customizer", icon: Palette },
       ],
     },
     {
       label: "CATALOG",
       items: [
-        { href: "/admin/products", label: "Products", icon: Package },
-        { href: "/admin/categories", label: "Categories", icon: Layers },
-        { href: "/admin/products/attributes", label: "Attributes", icon: Sliders },
-        { href: "/admin/inventory", label: "Inventory", icon: Warehouse },
+        { href: `${b}/products`, label: "Products", icon: Package },
+        { href: `${b}/categories`, label: "Categories", icon: Layers },
+        { href: `${b}/products/attributes`, label: "Attributes", icon: Sliders },
+        { href: `${b}/inventory`, label: "Inventory", icon: Warehouse },
       ],
     },
     {
       label: "SALES",
       items: [
         {
-          href: "/admin/orders",
+          href: `${b}/orders`,
           label: "Orders",
           icon: ShoppingBag,
           badge: newOrdersCount > 0 ? String(newOrdersCount) : undefined,
         },
         {
-          href: "/admin/customers",
+          href: `${b}/customers`,
           label: "Customers",
           icon: Users,
           badge: newCustomersCount > 0 ? String(newCustomersCount) : undefined,
         },
-        { href: "/admin/abandoned", label: "Abandoned Leads", icon: PhoneCall },
+        { href: `${b}/abandoned`, label: "Abandoned Leads", icon: PhoneCall },
       ],
     },
     {
       label: "FINANCE",
       items: [
-        { href: "/admin/expenses", label: "Expenses (খরচ)", icon: Wallet },
-        { href: "/admin/reports/profit-loss", label: "Profit & Loss (লাভ-ক্ষতি)", icon: TrendingUp },
+        { href: `${b}/expenses`, label: "Expenses (খরচ)", icon: Wallet },
+        { href: `${b}/reports/profit-loss`, label: "Profit & Loss (লাভ-ক্ষতি)", icon: TrendingUp },
       ],
     },
     {
       label: "SETTINGS",
       items: [
-        { href: "/admin/settings/shipping", label: "Shipping Rates", icon: Truck },
-        { href: "/admin/settings/courier", label: "Courier Integration", icon: Send },
-        { href: "/admin/settings/payments", label: "Payment Gateways", icon: CreditCard },
-        { href: "/admin/settings/invoice", label: "Invoice Templates", icon: FileText },
-        { href: "/admin/marketing/coupons", label: "Coupons & Discounts", icon: Tag },
-        { href: "/admin/settings/security", label: "Admin Security", icon: ShieldCheck },
-        { href: "/admin/settings/account", label: "Account & Password", icon: User },
-        { href: "/admin/settings/sms", label: "SMS Gateway", icon: MessageSquare },
-        { href: "/admin/settings/pixels", label: "Ad Pixels & GA4", icon: BarChart3 },
-        { href: "/admin/settings/backup", label: "Database Backup", icon: Database },
+        { href: `${b}/settings/shipping`, label: "Shipping Rates", icon: Truck },
+        { href: `${b}/settings/courier`, label: "Courier Integration", icon: Send },
+        { href: `${b}/settings/payments`, label: "Payment Gateways", icon: CreditCard },
+        { href: `${b}/settings/invoice`, label: "Invoice Templates", icon: FileText },
+        { href: `${b}/marketing/coupons`, label: "Coupons & Discounts", icon: Tag },
+        { href: `${b}/settings/security`, label: "Seller Security", icon: ShieldCheck },
+        { href: `${b}/settings/account`, label: "Account & Password", icon: User },
+        { href: `${b}/settings/sms`, label: "SMS Gateway", icon: MessageSquare },
+        { href: `${b}/settings/pixels`, label: "Ad Pixels & GA4", icon: BarChart3 },
+        { href: `${b}/settings/backup`, label: "Database Backup", icon: Database },
       ],
     },
   ];
@@ -228,7 +246,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       c.category.toLowerCase().includes(commandQuery.toLowerCase())
   );
 
-  if (pathname === "/admin/login") return <>{children}</>;
+  if (normPath === "/admin/login") return <>{children}</>;
 
   if (!authChecked) {
     return (
@@ -238,8 +256,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Lock className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">Verifying Admin Access...</h3>
-            <p className="text-xs text-slate-400">Ensuring authorized administrative credentials.</p>
+            <h3 className="text-base font-bold text-white">Verifying Seller Access...</h3>
+            <p className="text-xs text-slate-400">Loading your store dashboard.</p>
           </div>
         </div>
       </div>
@@ -257,14 +275,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-3">
               <img
-                src="/assets/favicon.png"
+                src="/logo.png"
                 alt="RM"
                 className="w-8 h-8 rounded-xl object-contain shadow-xs shrink-0"
               />
               {!sidebarCollapsed && (
                 <div className="overflow-hidden">
                   <span className="font-extrabold text-slate-900 text-sm block leading-tight truncate">
-                    {activeStore?.name || "Raifa's Mart"}
+                    {activeStore?.name || "Toolera"}
                   </span>
                   {isPaymentPending ? (
                     <span className="text-[10px] text-amber-600 font-black tracking-wider uppercase flex items-center gap-1">
@@ -300,7 +318,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                   )}
                   {group.items.map(item => {
-                    const isActive = pathname === item.href;
+                    const itemNorm = item.href.replace(/^\/seller\/[^/]+/, "/admin");
+                    const isActive = normPath === itemNorm || (itemNorm !== "/admin" && normPath.startsWith(itemNorm));
                     const Icon = item.icon;
                     return (
                       <Link

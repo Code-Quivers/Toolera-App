@@ -27,7 +27,7 @@ export default function WhatsAppWidget() {
 
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const defaultText = userMessage.trim() || "Hi Raifa's Mart, I am interested in your products and have a question.";
+    const defaultText = userMessage.trim() || "Hi Toolera, I am interested in your products and have a question.";
     const url = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(defaultText)}`;
     window.open(url, "_blank");
     setIsOpen(false);
@@ -49,7 +49,7 @@ export default function WhatsAppWidget() {
                 <div className="w-3 h-3 rounded-full bg-emerald-400 border-2 border-white absolute bottom-0 right-0" />
               </div>
               <div>
-                <h3 className="font-bold text-sm leading-tight">Raifa's Mart Helpline</h3>
+                <h3 className="font-bold text-sm leading-tight">Toolera Helpline</h3>
                 <span className="text-[11px] text-emerald-200 font-medium">Online • Typically replies in 2 mins</span>
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function WhatsAppWidget() {
           <div className="p-4 bg-slate-50 space-y-3 text-xs">
             <div className="bg-white p-3 rounded-2xl rounded-tl-xs shadow-xs border border-slate-100 text-slate-800 space-y-1">
               <p className="font-medium leading-relaxed">
-                👋 Assalamu Alaikum! Welcome to <strong>Raifa's Mart</strong>.
+                👋 Assalamu Alaikum! Welcome to <strong>Toolera</strong>.
               </p>
               <p className="text-slate-500 text-[11px]">
                 How can we help you today? Ask about product details, stock, or fast delivery across Bangladesh.

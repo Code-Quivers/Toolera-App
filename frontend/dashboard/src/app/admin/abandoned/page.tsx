@@ -161,7 +161,7 @@ export default function AbandonedLeadsPage() {
     const name = lead.customerName || "Customer";
     const totalBDT = formatPrice(lead.total || 0);
 
-    const message = `Assalamu Alaikum ${name}, we noticed you were ordering items (Total: ${totalBDT}) from Raifa's Mart but couldn't finish checkout. Need help or want us to confirm your delivery directly?`;
+    const message = `Assalamu Alaikum ${name}, we noticed you were ordering items (Total: ${totalBDT}) from Toolera but couldn't finish checkout. Need help or want us to confirm your delivery directly?`;
     window.open(`https://wa.me/${formatted}?text=${encodeURIComponent(message)}`, "_blank");
   };
 

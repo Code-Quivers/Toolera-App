@@ -323,7 +323,7 @@ export default function CheckoutPage() {
           id: `cust-${Date.now()}`,
           name: fullName.trim(),
           phone: phone.trim(),
-          email: `${phone.trim()}@guest.raifasmart.com`,
+          email: `${phone.trim()}@guest.toolera.store`,
           location: `${division}, Bangladesh`,
           address: `${address.trim()}, ${division}`,
           ordersCount: 1,

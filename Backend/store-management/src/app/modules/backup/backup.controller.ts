@@ -40,7 +40,7 @@ export async function exportStoreBackup(req: AuthRequest, res: Response) {
     const backupSnapshot = {
       version: '2.0.0',
       exportedAt: new Date().toISOString(),
-      storeName: "Raifa's Mart",
+      storeName: "Toolera",
       counts: {
         products: products.length,
         categories: categories.length,

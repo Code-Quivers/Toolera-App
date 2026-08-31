@@ -72,7 +72,7 @@ export class PathaoService {
         connected: true,
         message: 'Successfully connected to Pathao Sandbox Environment!',
         storesCount: 1,
-        stores: [{ store_id: 1, store_name: "Raifa's Mart Sandbox Pickup Hub", store_address: 'Gulshan-1, Dhaka' }],
+        stores: [{ store_id: 1, store_name: "Toolera Sandbox Pickup Hub", store_address: 'Gulshan-1, Dhaka' }],
       };
     }
 
@@ -127,7 +127,7 @@ export class PathaoService {
           item_weight: payload.item_weight || 0.5,
           item_type: 2,
           delivery_type: 48,
-          item_description: payload.item_description || "Raifa's Mart Lifestyle Package",
+          item_description: payload.item_description || "Toolera Lifestyle Package",
         }),
       });
 

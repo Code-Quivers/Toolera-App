@@ -5,7 +5,7 @@ import { ordersTable, orderStatusHistoriesTable, courierSettingsTable } from '..
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
 import { createSteadfastOrder, checkSteadfastStatus, getSteadfastBalance } from './steadfast.service.js';
 import { PathaoService, createPathaoOrder } from './pathao.service.js';
-import { SmsService } from './sms.service.js';
+import { SmsService } from '../orders/sms.service.js';
 
 export async function bookCourier(req: AuthRequest, res: Response) {
   try {
@@ -53,7 +53,7 @@ export async function bookCourier(req: AuthRequest, res: Response) {
         recipient_phone: order.customerPhone,
         recipient_address: `${order.address}, ${order.area}, ${order.district}`,
         cod_amount: order.total,
-        note: note || order.notes || "Handle with care - Raifa's Mart",
+        note: note || order.notes || "Handle with care - Toolera",
       });
     } else if (provider === 'PATHAO') {
       const orderItems = await rdb().select().from(orderStatusHistoriesTable).where(eq(orderStatusHistoriesTable.orderId, order.id));

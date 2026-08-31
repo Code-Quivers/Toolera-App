@@ -33,7 +33,7 @@ export async function getCmsConfig(req: Request, res: Response) {
         header,
         footer,
         seo: seo || {
-          defaultTitle: "Raifa's Mart — Discover What's Trending",
+          defaultTitle: "Toolera — Discover What's Trending",
           defaultDescription: "Discover what's trending in Bangladesh.",
           metaPixelId: null,
           tiktokPixelId: null,

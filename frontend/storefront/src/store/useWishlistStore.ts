@@ -35,5 +35,15 @@ export function useWishlistStore() {
 
   const isWishlisted = (productId: string) => snap.includes(productId);
 
-  return { wishlist: snap, toggle, isWishlisted };
+  const removeItem = (productId: string) => toggle(productId);
+
+  return {
+    wishlist: snap,
+    items: snap,
+    toggle,
+    toggleWishlist: toggle,
+    isWishlisted,
+    isInWishlist: isWishlisted,
+    removeItem,
+  };
 }

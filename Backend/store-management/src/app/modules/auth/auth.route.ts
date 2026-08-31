@@ -1,9 +1,10 @@
-// auth.routes.ts
 import { Router } from 'express';
-import { adminLogin, adminLogout, getAdminProfile, updateAdminProfile } from './auth.controller.js';
+import { signup, adminLogin, adminLogout, getAdminProfile, updateAdminProfile } from './auth.controller.js';
 import { requireAdmin } from '../../middlewares/auth.middleware.js';
 
 export const authRouter = Router();
+authRouter.post('/signup', signup);
+authRouter.post('/login', adminLogin);
 authRouter.post('/admin/login', adminLogin);
 authRouter.post('/admin/logout', requireAdmin, adminLogout);
 authRouter.get('/admin/profile', requireAdmin, getAdminProfile);

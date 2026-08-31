@@ -76,7 +76,7 @@ export default function InvoiceTemplateCustomizer() {
   };
 
   const handleReset = () => {
-    if (confirm("Reset invoice settings to default Raifa's Mart template?")) {
+    if (confirm("Reset invoice settings to default Toolera template?")) {
       setLocalSettings({ ...DEFAULT_INVOICE_SETTINGS });
       storeSettings.resetDefaults();
     }
@@ -198,7 +198,7 @@ export default function InvoiceTemplateCustomizer() {
                   {
                     id: "EMERALD",
                     title: "Emerald Modern (Recommended)",
-                    desc: "Official Raifa's Mart design with rich green headers, verified seller card, and clean typography.",
+                    desc: "Official Toolera design with rich green headers, verified seller card, and clean typography.",
                     badge: "Default Design",
                   },
                   {
@@ -369,7 +369,7 @@ export default function InvoiceTemplateCustomizer() {
                         type="text"
                         value={localSettings.companyLogo}
                         onChange={(e) => handleUpdate("companyLogo", e.target.value)}
-                        placeholder="Logo URL or /assets/favicon.png"
+                        placeholder="Logo URL or /logo.png"
                         className="w-full p-2 bg-white border border-slate-200 rounded-xl font-mono text-xs text-slate-700 outline-none focus:border-[#005A2B]"
                       />
                     </div>

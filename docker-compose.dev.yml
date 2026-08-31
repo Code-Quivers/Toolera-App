@@ -4,16 +4,37 @@ version: "3.9"
 # Run: docker compose -f docker-compose.dev.yml up -d
 
 services:
-  postgres:
+  postgres-store:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: toolera
-      POSTGRES_PASSWORD: toolera_dev
-      POSTGRES_DB: toolera_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: toolera_dev_2026
+      POSTGRES_DB: toolera_store_management_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_store_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-business:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: toolera_dev_2026
+      POSTGRES_DB: toolera_business_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_business_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -79,7 +100,8 @@ services:
       "
 
 volumes:
-  postgres_data:
+  postgres_store_data:
+  postgres_business_data:
   minio_data:
   rabbitmq_data:
   kafka_data:

@@ -11,18 +11,18 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "**" },
     ],
   },
+  async rewrites() {
+    return [
+      // /seller/:storeSlug           → /admin
+      { source: "/seller/:storeSlug", destination: "/admin" },
+      // /seller/:storeSlug/:path*    → /admin/:path*
+      { source: "/seller/:storeSlug/:path*", destination: "/admin/:path*" },
+    ];
+  },
   async redirects() {
     return [
-      {
-        source: "/",
-        destination: "/admin",
-        permanent: false,
-      },
-      {
-        source: "/admin/login",
-        destination: "/login",
-        permanent: false,
-      },
+      { source: "/", destination: "/admin", permanent: false },
+      { source: "/admin/login", destination: "/login", permanent: false },
     ];
   },
 };

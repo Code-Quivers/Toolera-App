@@ -7,62 +7,62 @@ import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 
 const STATIC_ROUTE_TITLES: Record<string, string> = {
-  "/": "Raifa's Mart — Discover What's Trending in BD",
-  "/shop": "Shop All Products | Raifa's Mart",
-  "/cart": "Shopping Cart | Raifa's Mart",
-  "/checkout": "Secure Checkout | Raifa's Mart",
-  "/order-success": "Order Confirmed | Raifa's Mart",
-  "/track-order": "Track Your Order | Raifa's Mart",
-  "/account": "My Account | Raifa's Mart",
-  "/account/orders": "My Orders | Raifa's Mart",
-  "/account/profile": "Account Profile | Raifa's Mart",
-  "/account/address": "Saved Addresses | Raifa's Mart",
-  "/account/wishlist": "My Wishlist | Raifa's Mart",
-  "/my-account": "My Account | Raifa's Mart",
-  "/my-account/orders": "My Orders | Raifa's Mart",
-  "/my-account/profile": "Account Profile | Raifa's Mart",
-  "/my-account/address": "Saved Addresses | Raifa's Mart",
-  "/my-account/wishlist": "My Wishlist | Raifa's Mart",
-  "/pages/shipping-policy": "Shipping Policy (1–3 Days) | Raifa's Mart",
-  "/pages/returns": "7-Day Easy Return Policy | Raifa's Mart",
-  "/pages/terms": "Terms of Service | Raifa's Mart",
-  "/pages/privacy-policy": "Privacy Policy | Raifa's Mart",
-  "/pages/contact": "Contact & Customer Support | Raifa's Mart",
+  "/": "Toolera — Discover What's Trending in BD",
+  "/shop": "Shop All Products | Toolera",
+  "/cart": "Shopping Cart | Toolera",
+  "/checkout": "Secure Checkout | Toolera",
+  "/order-success": "Order Confirmed | Toolera",
+  "/track-order": "Track Your Order | Toolera",
+  "/account": "My Account | Toolera",
+  "/account/orders": "My Orders | Toolera",
+  "/account/profile": "Account Profile | Toolera",
+  "/account/address": "Saved Addresses | Toolera",
+  "/account/wishlist": "My Wishlist | Toolera",
+  "/my-account": "My Account | Toolera",
+  "/my-account/orders": "My Orders | Toolera",
+  "/my-account/profile": "Account Profile | Toolera",
+  "/my-account/address": "Saved Addresses | Toolera",
+  "/my-account/wishlist": "My Wishlist | Toolera",
+  "/pages/shipping-policy": "Shipping Policy (1–3 Days) | Toolera",
+  "/pages/returns": "7-Day Easy Return Policy | Toolera",
+  "/pages/terms": "Terms of Service | Toolera",
+  "/pages/privacy-policy": "Privacy Policy | Toolera",
+  "/pages/contact": "Contact & Customer Support | Toolera",
 
   // Admin Routes
-  "/admin": "Admin Dashboard | Raifa's Mart",
-  "/admin/orders": "Orders Management | Raifa's Mart Admin",
-  "/admin/products": "Products Catalog | Raifa's Mart Admin",
-  "/admin/products/new": "Add New Product | Raifa's Mart Admin",
-  "/admin/products/bulk": "Bulk Product Manager | Raifa's Mart Admin",
-  "/admin/products/attributes": "Product Attributes & Variants | Raifa's Mart Admin",
-  "/admin/categories": "Category Management | Raifa's Mart Admin",
-  "/admin/customers": "Customers | Raifa's Mart Admin",
-  "/admin/analytics": "Store Analytics | Raifa's Mart Admin",
-  "/admin/inventory": "Inventory & Stock | Raifa's Mart Admin",
-  "/admin/reviews": "Product Reviews | Raifa's Mart Admin",
-  "/admin/abandoned": "Abandoned Cart Recovery | Raifa's Mart Admin",
-  "/admin/media": "Media Library | Raifa's Mart Admin",
-  "/admin/marketing/coupons": "Discount Coupons | Raifa's Mart Admin",
-  "/admin/website/header": "Header Customizer | Raifa's Mart Admin",
-  "/admin/website/footer": "Footer Menu Manager | Raifa's Mart Admin",
-  "/admin/website/homepage": "Homepage Builder | Raifa's Mart Admin",
-  "/admin/website/navigation": "Navigation Menus | Raifa's Mart Admin",
-  "/admin/website/pages": "Custom Pages | Raifa's Mart Admin",
-  "/admin/website/theme": "Theme & Color Customizer | Raifa's Mart Admin",
-  "/admin/settings": "Settings Hub | Raifa's Mart Admin",
-  "/admin/settings/all": "All Settings Hub | Raifa's Mart Admin",
-  "/admin/settings/shipping": "Shipping Rates & Delivery | Raifa's Mart Admin",
-  "/admin/settings/courier": "Steadfast & Pathao Courier API | Raifa's Mart Admin",
-  "/admin/settings/payments": "Payment Gateways (COD, bKash, Nagad) | Raifa's Mart Admin",
-  "/admin/settings/marketing": "Urgency & Bundle Discounts | Raifa's Mart Admin",
-  "/admin/settings/sms": "SMS Notification Gateway | Raifa's Mart Admin",
-  "/admin/settings/pixels": "Meta Pixel & GA4 Analytics | Raifa's Mart Admin",
-  "/admin/settings/backup": "Database JSON Backup & Restore | Raifa's Mart Admin",
-  "/admin/settings/security": "Admin Profile & Security | Raifa's Mart Admin",
-  "/admin/seo": "SEO & Meta Tags | Raifa's Mart Admin",
-  "/login": "Sign In | Raifa's Mart",
-  "/signup": "Create Store Account | Raifa's Mart",
+  "/admin": "Admin Dashboard | Toolera",
+  "/admin/orders": "Orders Management | Toolera Admin",
+  "/admin/products": "Products Catalog | Toolera Admin",
+  "/admin/products/new": "Add New Product | Toolera Admin",
+  "/admin/products/bulk": "Bulk Product Manager | Toolera Admin",
+  "/admin/products/attributes": "Product Attributes & Variants | Toolera Admin",
+  "/admin/categories": "Category Management | Toolera Admin",
+  "/admin/customers": "Customers | Toolera Admin",
+  "/admin/analytics": "Store Analytics | Toolera Admin",
+  "/admin/inventory": "Inventory & Stock | Toolera Admin",
+  "/admin/reviews": "Product Reviews | Toolera Admin",
+  "/admin/abandoned": "Abandoned Cart Recovery | Toolera Admin",
+  "/admin/media": "Media Library | Toolera Admin",
+  "/admin/marketing/coupons": "Discount Coupons | Toolera Admin",
+  "/admin/website/header": "Header Customizer | Toolera Admin",
+  "/admin/website/footer": "Footer Menu Manager | Toolera Admin",
+  "/admin/website/homepage": "Homepage Builder | Toolera Admin",
+  "/admin/website/navigation": "Navigation Menus | Toolera Admin",
+  "/admin/website/pages": "Custom Pages | Toolera Admin",
+  "/admin/website/theme": "Theme & Color Customizer | Toolera Admin",
+  "/admin/settings": "Settings Hub | Toolera Admin",
+  "/admin/settings/all": "All Settings Hub | Toolera Admin",
+  "/admin/settings/shipping": "Shipping Rates & Delivery | Toolera Admin",
+  "/admin/settings/courier": "Steadfast & Pathao Courier API | Toolera Admin",
+  "/admin/settings/payments": "Payment Gateways (COD, bKash, Nagad) | Toolera Admin",
+  "/admin/settings/marketing": "Urgency & Bundle Discounts | Toolera Admin",
+  "/admin/settings/sms": "SMS Notification Gateway | Toolera Admin",
+  "/admin/settings/pixels": "Meta Pixel & GA4 Analytics | Toolera Admin",
+  "/admin/settings/backup": "Database JSON Backup & Restore | Toolera Admin",
+  "/admin/settings/security": "Admin Profile & Security | Toolera Admin",
+  "/admin/seo": "SEO & Meta Tags | Toolera Admin",
+  "/login": "Sign In | Toolera",
+  "/signup": "Create Store Account | Toolera",
 };
 
 /**
@@ -94,12 +94,12 @@ export function FaviconInjector() {
           p?.id?.toLowerCase() === slug?.toLowerCase()
       );
       if (product) {
-        targetTitle = product.metaTitle || `${product.title} | Raifa's Mart`;
+        targetTitle = product.metaTitle || `${product.title} | Toolera`;
       } else {
         const formattedSlug = decodeURIComponent(slug || "")
           .replace(/[-_]/g, " ")
           .replace(/\b\w/g, (c) => c.toUpperCase());
-        targetTitle = `${formattedSlug} | Raifa's Mart`;
+        targetTitle = `${formattedSlug} | Toolera`;
       }
     }
     // Category Page: /category/[slug]
@@ -111,12 +111,12 @@ export function FaviconInjector() {
           c?.id?.toLowerCase() === catSlug?.toLowerCase()
       );
       if (category) {
-        targetTitle = `${category.name} | Raifa's Mart`;
+        targetTitle = `${category.name} | Toolera`;
       } else {
         const formattedCat = decodeURIComponent(catSlug || "")
           .replace(/[-_]/g, " ")
           .replace(/\b\w/g, (c) => c.toUpperCase());
-        targetTitle = `${formattedCat} | Raifa's Mart`;
+        targetTitle = `${formattedCat} | Toolera`;
       }
     }
     // Custom CMS Page: /pages/[slug]
@@ -125,11 +125,11 @@ export function FaviconInjector() {
       const formattedPage = decodeURIComponent(pageSlug || "")
         .replace(/[-_]/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
-      targetTitle = `${formattedPage} | Raifa's Mart`;
+      targetTitle = `${formattedPage} | Toolera`;
     }
     // Admin Edit Product: /admin/products/edit/[id]
     else if (pathname.startsWith("/admin/products/edit/")) {
-      targetTitle = "Edit Product | Raifa's Mart Admin";
+      targetTitle = "Edit Product | Toolera Admin";
     }
     // Generic Segment Fallback
     else {
@@ -138,9 +138,9 @@ export function FaviconInjector() {
         const formatted = decodeURIComponent(lastSegment)
           .replace(/[-_]/g, " ")
           .replace(/\b\w/g, (c) => c.toUpperCase());
-        targetTitle = `${formatted} | Raifa's Mart`;
+        targetTitle = `${formatted} | Toolera`;
       } else {
-        targetTitle = "Raifa's Mart — Discover What's Trending";
+        targetTitle = "Toolera — Discover What's Trending";
       }
     }
 

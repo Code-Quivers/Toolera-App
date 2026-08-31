@@ -1,30 +1,23 @@
-import { SetOptions, createClient } from 'redis';
+import Redis from 'ioredis';
 import { config } from '../config/index.js';
 import { errorLogger, infoLogger } from '../utils/logger.js';
 
-const redisClient = createClient({ url: config.redis.url });
-const redisPubClient = createClient({ url: config.redis.url });
-const redisSubClient = createClient({ url: config.redis.url });
+const makeClient = (name: string) =>
+  new Redis(config.redis.url, { lazyConnect: false, enableReadyCheck: true, maxRetriesPerRequest: 3 })
+    .on('connect', () => infoLogger.info(`Redis ${name} connected to ${config.redis.url}`))
+    .on('error', (err: Error) => errorLogger.error(`Redis ${name} error:`, err));
 
-type RedisEventEmitter = { on(event: string, listener: (...args: any[]) => void): void };
+const redisClient = makeClient('client');
+const redisPubClient = makeClient('pub');
+const redisSubClient = makeClient('sub');
 
-const handleError = (clientName: string, error: unknown) => {
-  errorLogger.error(`${clientName} error:`, error);
-};
-
-(redisClient as RedisEventEmitter).on('error', (error) => handleError('Redis Client', error));
-(redisPubClient as RedisEventEmitter).on('error', (error) => handleError('Redis Pub Client', error));
-(redisSubClient as RedisEventEmitter).on('error', (error) => handleError('Redis Sub Client', error));
-
-(redisClient as RedisEventEmitter).on('connect', () => {
-  infoLogger.info(`Redis client connected to ${config.redis.url}`);
-});
-
-// ── Utility functions ─────────────────────────────────────────────────────────
-
-const set = async (key: string, value: string, options?: SetOptions): Promise<void> => {
+const set = async (key: string, value: string, exSeconds?: number): Promise<void> => {
   try {
-    await redisClient.set(key, value, options);
+    if (exSeconds) {
+      await redisClient.set(key, value, 'EX', exSeconds);
+    } else {
+      await redisClient.set(key, value);
+    }
     infoLogger.info(`Key set: ${key}`);
   } catch (error) {
     errorLogger.error(`Failed to set key: ${key}`, error);
@@ -49,12 +42,8 @@ const del = async (key: string): Promise<void> => {
   }
 };
 
-// ── Access token helpers ──────────────────────────────────────────────────────
-// These are the source of truth the api-gateway reads for session validation.
-
 const setAccessToken = async (userId: string, token: string): Promise<void> => {
-  const key = `access-token:${userId}`;
-  await set(key, token, { EX: Number(config.redis.expiresIn) });
+  await set(`access-token:${userId}`, token, Number(config.redis.expiresIn));
 };
 
 const getAccessToken = async (userId: string): Promise<string | null> => {
@@ -65,26 +54,14 @@ const delAccessToken = async (userId: string): Promise<void> => {
   await del(`access-token:${userId}`);
 };
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
-
 const connect = async (): Promise<void> => {
-  try {
-    await Promise.all([
-      redisClient.connect(),
-      redisPubClient.connect(),
-      redisSubClient.connect(),
-    ]);
-    infoLogger.info('All Redis clients connected successfully.');
-  } catch (error) {
-    errorLogger.error('Failed to connect Redis clients.', error);
-    process.exit(1);
-  }
+  infoLogger.info('All Redis clients ready (ioredis auto-connects).');
 };
 
 const disconnect = async (): Promise<void> => {
   try {
     await Promise.all([redisClient.quit(), redisPubClient.quit(), redisSubClient.quit()]);
-    infoLogger.info('All Redis clients disconnected successfully.');
+    infoLogger.info('All Redis clients disconnected.');
   } catch (error) {
     errorLogger.error('Failed to disconnect Redis clients.', error);
   }
@@ -99,6 +76,7 @@ export const RedisClient = {
   setAccessToken,
   getAccessToken,
   delAccessToken,
-  publish: redisPubClient.publish.bind(redisPubClient),
-  subscribe: redisSubClient.subscribe.bind(redisSubClient),
+  publish: (channel: string, message: string) => redisPubClient.publish(channel, message),
+  subscribe: (channel: string) => redisSubClient.subscribe(channel),
+  subClient: redisSubClient,
 };

@@ -242,7 +242,7 @@ export default function AdminNewProductPage() {
       returnPolicy,
       showFlashSaleCountdown,
       showBundleDiscounts,
-      seoTitle: seoTitle || `${title} | Raifa's Mart`,
+      seoTitle: seoTitle || `${title} | Toolera`,
       seoDescription: seoDescription || shortDesc,
     };
 

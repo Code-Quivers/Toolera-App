@@ -1,7 +1,11 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Toolera — business PostgreSQL on Kubernetes
-# Usage: bash run-db.sh [start|stop|push|setup|logs|connect|forward|status]
+# Toolera — business PostgreSQL via CloudNativePG operator
+# Usage: bash run-db.sh [start|stop|push|migrate|setup|seed|logs|connect|forward|status]
+#
+# Ports (local):
+#   5434  →  business-postgres-rw (primary, read-write)
+#   5444  →  business-postgres-ro (replicas, read-only)
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -e
@@ -9,26 +13,39 @@ set -e
 # ── helpers ───────────────────────────────────────────────────────────────────
 wait_for_port() {
   local port=$1
-  echo ">>> Waiting for localhost:${port} to accept connections..."
-  for i in $(seq 1 30); do
+  echo ">>> Waiting for localhost:${port}..."
+  for i in $(seq 1 60); do
     if nc -z localhost "$port" 2>/dev/null; then
       echo "   ✅ Port ${port} is open."
       return 0
     fi
-    sleep 1
+    sleep 2
   done
   echo "   ⚠️  Timed out waiting for port ${port}."
   return 1
 }
 
+ensure_cnpg() {
+  if kubectl get crd clusters.postgresql.cnpg.io &>/dev/null; then
+    echo ">>> CloudNativePG operator already installed."
+    return
+  fi
+  echo ">>> Installing CloudNativePG operator..."
+  kubectl apply --server-side \
+    -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.25/releases/cnpg-1.25.0.yaml
+  echo ">>> Waiting for CNPG webhook to be ready..."
+  kubectl rollout status deployment/cnpg-controller-manager \
+    -n cnpg-system --timeout=120s
+}
+
+# ── config ────────────────────────────────────────────────────────────────────
 DB_NAME="${BIZ_DB_NAME:-toolera_business_db}"
 DB_USER="${BIZ_DB_USER:-postgres}"
 DB_PASS="${BIZ_DB_PASS:?BIZ_DB_PASS is required}"
-DB_PORT="${BIZ_DB_PORT:-5434}"  # local port — business (store-management uses 5433)
-STATEFULSET="business-postgres"
-SERVICE="business-postgres"
+DB_PORT_RW="${BIZ_DB_PORT:-5434}"     # primary  (read-write)
+DB_PORT_RO="${BIZ_DB_PORT_RO:-5444}"  # replicas (read-only)
+CLUSTER="business-postgres"
 SECRET="toolera-business-db-secret"
-PVC="pgdata-business-postgres-0"
 
 ACTION=${1:-start}
 
@@ -36,206 +53,173 @@ case "$ACTION" in
 
   # ── START ──────────────────────────────────────────────────────────────────
   start)
-    echo ">>> Deploying Toolera business PostgreSQL to Kubernetes..."
+    ensure_cnpg
 
+    echo ">>> Creating credential secret..."
     kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
   name: ${SECRET}
+type: kubernetes.io/basic-auth
 stringData:
-  POSTGRES_USER: "${DB_USER}"
-  POSTGRES_PASSWORD: "${DB_PASS}"
-  POSTGRES_DB: "${DB_NAME}"
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: ${STATEFULSET}
-spec:
-  serviceName: ${STATEFULSET}
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${STATEFULSET}
-  template:
-    metadata:
-      labels:
-        app: ${STATEFULSET}
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:16
-          envFrom:
-            - secretRef:
-                name: ${SECRET}
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: pgdata
-              mountPath: /var/lib/postgresql/data
-          readinessProbe:
-            exec:
-              command: [pg_isready, -U, "${DB_USER}", -d, "${DB_NAME}"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-  volumeClaimTemplates:
-    - metadata:
-        name: pgdata
-      spec:
-        accessModes: [ReadWriteOnce]
-        resources:
-          requests:
-            storage: 5Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${SERVICE}
-spec:
-  selector:
-    app: ${STATEFULSET}
-  ports:
-    - port: 5432
-      targetPort: 5432
+  username: "${DB_USER}"
+  password: "${DB_PASS}"
 EOF
 
-    echo ">>> Waiting for pod to be ready..."
-    kubectl wait pod \
-      -l app=${STATEFULSET} \
+    echo ">>> Deploying CNPG Cluster (1 primary + 2 replicas)..."
+    kubectl apply -f - <<EOF
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: ${CLUSTER}
+spec:
+  instances: 3
+  primaryUpdateStrategy: unsupervised
+
+  superuserSecret:
+    name: ${SECRET}
+
+  bootstrap:
+    initdb:
+      database: "${DB_NAME}"
+      owner: "${DB_USER}"
+      secret:
+        name: ${SECRET}
+
+  storage:
+    size: 5Gi
+
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  monitoring:
+    enablePodMonitor: false
+EOF
+
+    echo ">>> Waiting for primary to be ready (up to 5 min)..."
+    kubectl wait cluster/${CLUSTER} \
       --for=condition=Ready \
-      --timeout=120s
+      --timeout=300s
 
     echo ""
-    echo "✅ business DB is ready!"
+    echo "✅ business DB cluster ready!"
+    echo "   Primary  (rw) : ${CLUSTER}-rw:5432"
+    echo "   Replicas (ro) : ${CLUSTER}-ro:5432"
     echo ""
-    echo "   Internal k8s URL : postgresql://${DB_USER}:${DB_PASS}@${SERVICE}:5432/${DB_NAME}"
-    echo "   Local URL        : postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}"
+    echo ">>> Starting port-forwards:"
+    echo "    localhost:${DB_PORT_RW} → primary  (read-write)"
+    echo "    localhost:${DB_PORT_RO} → replicas (read-only)"
+    echo ">>> Press Ctrl+C to stop (cluster keeps running in k8s)"
     echo ""
-    echo ">>> Starting port-forward on localhost:${DB_PORT}..."
-    echo ">>> Press Ctrl+C to stop port-forward (DB keeps running in k8s)"
-    echo ""
-    kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432
+    kubectl port-forward svc/${CLUSTER}-rw ${DB_PORT_RW}:5432 &
+    PF_RW=$!
+    kubectl port-forward svc/${CLUSTER}-ro ${DB_PORT_RO}:5432 &
+    PF_RO=$!
+    trap "kill $PF_RW $PF_RO 2>/dev/null" EXIT
+    wait $PF_RW $PF_RO
     ;;
 
   # ── STOP ───────────────────────────────────────────────────────────────────
   stop)
-    echo ">>> Removing business PostgreSQL from Kubernetes..."
-    kubectl delete statefulset ${STATEFULSET} --ignore-not-found
-    kubectl delete service     ${SERVICE}     --ignore-not-found
-    kubectl delete secret      ${SECRET}      --ignore-not-found
-    kubectl delete pvc         ${PVC}         --ignore-not-found
-    echo "✅ Done."
+    echo ">>> Removing business CNPG Cluster and secret..."
+    kubectl delete cluster ${CLUSTER} --ignore-not-found
+    kubectl delete secret  ${SECRET}  --ignore-not-found
+    echo "✅ Done. (PVCs kept — data preserved)"
+    echo "   To also delete data: kubectl delete pvc -l cnpg.io/cluster=${CLUSTER}"
     ;;
 
-  # ── PUSH (prisma db push via port-forward) ─────────────────────────────────
+  # ── PUSH (drizzle-kit push) ────────────────────────────────────────────────
   push)
-    echo ">>> Starting port-forward in background on localhost:${DB_PORT}..."
-    kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432 &
+    kubectl port-forward svc/${CLUSTER}-rw ${DB_PORT_RW}:5432 &
     PF_PID=$!
     trap "kill $PF_PID 2>/dev/null" EXIT
-
-    wait_for_port ${DB_PORT}
+    wait_for_port ${DB_PORT_RW}
 
     echo ">>> Running drizzle-kit push..."
-    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
+    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT_RW}/${DB_NAME}" \
       npm run db:push
-
-    echo ""
-    echo ">>> Verifying tables:"
-    kubectl exec ${STATEFULSET}-0 -- \
-      psql -U ${DB_USER} -d ${DB_NAME} -c "\dt public.*"
-
-    echo ""
     echo "✅ Push complete."
     ;;
 
-  # ── MIGRATE (drizzle-kit migrate — apply generated SQL migrations) ────────
+  # ── MIGRATE ────────────────────────────────────────────────────────────────
   migrate)
-    echo ">>> Starting port-forward in background on localhost:${DB_PORT}..."
-    kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432 &
+    kubectl port-forward svc/${CLUSTER}-rw ${DB_PORT_RW}:5432 &
     PF_PID=$!
     trap "kill $PF_PID 2>/dev/null" EXIT
-
-    wait_for_port ${DB_PORT}
+    wait_for_port ${DB_PORT_RW}
 
     echo ">>> Running drizzle-kit migrate..."
-    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
+    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT_RW}/${DB_NAME}" \
       npm run db:migrate
-
     echo "✅ Migrations applied."
     ;;
 
   # ── SETUP (first-time: start + push) ──────────────────────────────────────
   setup)
-    echo ">>> [1/3] Deploying business PostgreSQL..."
     bash "$0" start &
+    wait_for_port ${DB_PORT_RW}
 
-    wait_for_port ${DB_PORT}
-
-    echo ""
-    echo ">>> [2/3] Pushing Drizzle schema..."
-    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
+    echo ">>> Pushing Drizzle schema..."
+    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT_RW}/${DB_NAME}" \
       npm run db:push
-
-    echo ""
-    echo ">>> [3/3] Tables in DB:"
-    kubectl exec ${STATEFULSET}-0 -- \
-      psql -U ${DB_USER} -d ${DB_NAME} -c "\dt public.*"
-
-    echo ""
-    echo "✅ Setup complete! Port-forward is running on localhost:${DB_PORT}."
-    echo "   Run your server: npm run dev"
+    echo "✅ Setup complete. Run: npm run dev"
     wait
     ;;
 
   # ── SEED ───────────────────────────────────────────────────────────────────
   seed)
-    echo ">>> Starting port-forward in background on localhost:${DB_PORT}..."
-    kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432 &
+    kubectl port-forward svc/${CLUSTER}-rw ${DB_PORT_RW}:5432 &
     PF_PID=$!
     trap "kill $PF_PID 2>/dev/null" EXIT
-
-    wait_for_port ${DB_PORT}
+    wait_for_port ${DB_PORT_RW}
 
     echo ">>> Running db seed..."
-    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}" \
+    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT_RW}/${DB_NAME}" \
       npm run db:seed
-
     echo "✅ Seed complete."
     ;;
 
   # ── LOGS ───────────────────────────────────────────────────────────────────
   logs)
-    kubectl logs -l app=${STATEFULSET} --follow
+    kubectl logs -l cnpg.io/cluster=${CLUSTER} --follow
     ;;
 
-  # ── CONNECT (psql shell inside pod) ────────────────────────────────────────
+  # ── CONNECT ────────────────────────────────────────────────────────────────
   connect)
-    echo ">>> Opening psql shell inside the pod..."
-    kubectl exec -it ${STATEFULSET}-0 -- \
-      psql -U ${DB_USER} -d ${DB_NAME}
+    echo ">>> Opening psql on primary pod..."
+    PRIMARY=$(kubectl get pod -l cnpg.io/cluster=${CLUSTER},role=primary -o name | head -1)
+    kubectl exec -it ${PRIMARY} -- psql -U ${DB_USER} -d ${DB_NAME}
     ;;
 
-  # ── FORWARD (port-forward only, DB already running) ────────────────────────
+  # ── FORWARD ────────────────────────────────────────────────────────────────
   forward)
-    echo ">>> Port-forwarding localhost:${DB_PORT} → k8s ${SERVICE}:5432"
-    kubectl port-forward svc/${SERVICE} ${DB_PORT}:5432
+    echo ">>> Port-forwarding:"
+    echo "    localhost:${DB_PORT_RW} → ${CLUSTER}-rw (primary)"
+    echo "    localhost:${DB_PORT_RO} → ${CLUSTER}-ro (replicas)"
+    kubectl port-forward svc/${CLUSTER}-rw ${DB_PORT_RW}:5432 &
+    PF_RW=$!
+    kubectl port-forward svc/${CLUSTER}-ro ${DB_PORT_RO}:5432 &
+    PF_RO=$!
+    trap "kill $PF_RW $PF_RO 2>/dev/null" EXIT
+    wait $PF_RW $PF_RO
     ;;
 
   # ── STATUS ─────────────────────────────────────────────────────────────────
   status)
-    echo ">>> StatefulSet:"
-    kubectl get statefulset ${STATEFULSET}
+    echo ">>> CNPG Cluster:"
+    kubectl get cluster ${CLUSTER}
     echo ""
-    echo ">>> Pod:"
-    kubectl get pod -l app=${STATEFULSET}
+    echo ">>> Pods:"
+    kubectl get pod -l cnpg.io/cluster=${CLUSTER}
     echo ""
-    echo ">>> PVC:"
-    kubectl get pvc ${PVC}
-    echo ""
-    echo ">>> Service:"
-    kubectl get service ${SERVICE}
+    echo ">>> Services:"
+    kubectl get svc -l cnpg.io/cluster=${CLUSTER}
     ;;
 
   *)
@@ -243,27 +227,30 @@ EOF
 Usage: bash run-db.sh [command]
 
 Commands:
-  start    Deploy PostgreSQL to Kubernetes (includes port-forward)
-  stop     Stop and remove all resources (PVC deleted — data lost)
-  push     Sync schema via drizzle-kit push (dev)
-  migrate  Apply SQL migrations via drizzle-kit migrate (prod)
-  setup    One-time init: deploy + push schema
-  seed     Run prisma db seed
-  logs     Watch PostgreSQL logs
-  connect  Open psql shell inside pod
-  forward  Port-forward localhost:${DB_PORT} (DB must already be running)
-  status   Show pod/pvc/service status
+  start    Install CNPG operator + deploy 3-instance cluster (1 primary + 2 replicas)
+  stop     Delete cluster and secret (PVCs kept; data preserved)
+  push     Sync schema via drizzle-kit push
+  migrate  Apply SQL migrations via drizzle-kit migrate
+  setup    One-time init: start + push schema
+  seed     Run db seed
+  logs     Stream logs from all cluster pods
+  connect  Open psql shell on primary pod
+  forward  Port-forward primary + replica services (cluster must be running)
+  status   Show cluster / pod / service status
 
-Examples:
-  bash run-db.sh start       # Deploy and start port-forward
-  bash run-db.sh push        # Sync Prisma schema (DB must be running)
-  bash run-db.sh forward     # Port-forward for local development
-  bash run-db.sh migrate     # Run production migrations
+Ports:
+  ${DB_PORT_RW}  →  ${CLUSTER}-rw  (primary, read-write)
+  ${DB_PORT_RO}  →  ${CLUSTER}-ro  (replicas, read-only)
 
 Environment:
-  DB_PORT:     ${DB_PORT}
-  DB_NAME:     ${DB_NAME}
-  STATEFULSET: ${STATEFULSET}
+  BIZ_DB_PASS    required — Postgres password
+  BIZ_DB_NAME    default: toolera_business_db
+  BIZ_DB_USER    default: postgres
+  BIZ_DB_PORT    default: 5434  (primary port-forward)
+  BIZ_DB_PORT_RO default: 5444  (replica port-forward)
+
+Example:
+  BIZ_DB_PASS=secret bash run-db.sh start
 HELP
     ;;
 

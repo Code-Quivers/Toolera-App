@@ -24,7 +24,7 @@
     "description": "Flat ৳50 discount on orders above ৳300"
   },
   {
-    "id": "coup-raifa100",
+    "id": "coup-toolera100",
     "code": "RAIFA100",
     "discountType": "FIXED_BDT",
     "discountValue": 100,

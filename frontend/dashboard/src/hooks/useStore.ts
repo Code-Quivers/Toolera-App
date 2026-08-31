@@ -43,11 +43,12 @@ export function useStore() {
       .finally(() => setLoading(false));
   }, []);
 
-  const isPaymentPending = !store?.subscription ||
+  const isPaymentPending = !!store?.subscription && (
     store.subscription.status === "PENDING" ||
     store.subscription.status === "UNPAID" ||
-    store.subscription.status === "TRIALING" ||
-    store.subscription.status !== "ACTIVE";
+    store.subscription.status === "CANCELLED" ||
+    store.subscription.status === "EXPIRED"
+  );
 
   return { store, loading, isPaymentPending };
 }

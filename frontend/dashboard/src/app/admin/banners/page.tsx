@@ -108,9 +108,9 @@ export default function AdminBannersPage() {
     if (confirm("Are you sure you want to permanently delete all banner slides?")) {
       saveAndPublishHeroSlides([], "All banner slides permanently cleared.");
       try {
-        localStorage.removeItem("raifas_mart_cms_engine_v3");
-        localStorage.removeItem("raifas_mart_cms_engine_v2");
-        localStorage.removeItem("raifas_mart_cms_engine");
+        localStorage.removeItem("toolera_cms_engine_v3");
+        localStorage.removeItem("toolera_cms_engine_v2");
+        localStorage.removeItem("toolera_cms_engine");
       } catch {}
     }
   };

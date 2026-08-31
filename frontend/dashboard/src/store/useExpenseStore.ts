@@ -2,6 +2,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 
+export type ExpenseCategory = string;
+
+export interface ExpenseItem {
+  id: string;
+  title: string;
+  amount: number;
+  category?: string | null;
+  note?: string | null;
+  date?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
 export function useExpenseStore() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

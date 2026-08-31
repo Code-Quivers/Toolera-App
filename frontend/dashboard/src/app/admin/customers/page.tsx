@@ -629,7 +629,7 @@ export default function AdminCustomersPage() {
                 <div className="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-center">
                   <div className="p-2 bg-white rounded-xl border border-slate-200">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Lifetime Purchases</span>
-                    <span className="font-black text-slate-900 text-sm">{formatPrice(viewingCustomer.totalSpent)}</span>
+                    <span className="font-black text-slate-900 text-sm">{formatPrice(viewingCustomer.totalSpent ?? 0)}</span>
                   </div>
                   <div className="p-2 bg-rose-50 rounded-xl border border-rose-200">
                     <span className="text-[10px] text-rose-500 font-bold uppercase block">Outstanding Due</span>
@@ -651,7 +651,7 @@ export default function AdminCustomersPage() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {viewingCustomer.ledger.map((item) => {
+                    {viewingCustomer.ledger.map((item: any) => {
                       const isDue = item.type === "DUE_ADDED";
                       return (
                         <div
@@ -843,7 +843,7 @@ export default function AdminCustomersPage() {
                   <input
                     type="text"
                     required
-                    value={editingCustomer.phone}
+                    value={editingCustomer.phone ?? ""}
                     onChange={(e) => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-mono focus:outline-none focus:border-[#008B47]"
                   />
@@ -881,7 +881,7 @@ export default function AdminCustomersPage() {
                 <label className="font-bold text-slate-700">Delivery Address</label>
                 <textarea
                   rows={2}
-                  value={editingCustomer.address}
+                  value={editingCustomer.address ?? ""}
                   onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-[#008B47]"
                 />

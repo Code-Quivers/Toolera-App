@@ -101,7 +101,7 @@ export function CustomerAuthModal() {
               <h3 className="font-black text-base text-slate-900 leading-tight">
                 {authModalView === "LOGIN" ? "Customer Sign In" : "Create New Customer Account"}
               </h3>
-              <p className="text-xs text-slate-400">Raifa&apos;s Mart Bangladesh</p>
+              <p className="text-xs text-slate-400">Toolera Bangladesh</p>
             </div>
           </div>
 

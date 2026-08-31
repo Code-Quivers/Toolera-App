@@ -142,7 +142,7 @@ export default function AdminSettingsPage({ initialTab }: { initialTab?: string 
   const [smsSenderId, setSmsSenderId] = useState("");
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [smsOrderPlacedEnabled, setSmsOrderPlacedEnabled] = useState(true);
-  const [smsOrderPlacedTemplate, setSmsOrderPlacedTemplate] = useState("Dear {customer_name}, your order #{order_number} for BDT {total} is confirmed at Raifa's Mart! Helpline: 01712-345678");
+  const [smsOrderPlacedTemplate, setSmsOrderPlacedTemplate] = useState("Dear {customer_name}, your order #{order_number} for BDT {total} is confirmed at Toolera! Helpline: 01712-345678");
   const [smsOrderShippedEnabled, setSmsOrderShippedEnabled] = useState(true);
   const [smsOrderShippedTemplate, setSmsOrderShippedTemplate] = useState("Dear {customer_name}, your parcel #{order_number} is dispatched via {courier_name}. Tracking ID: {tracking_code}.");
   const [smsBalance, setSmsBalance] = useState<string>("100 SMS (Sandbox Simulator)");
@@ -378,7 +378,7 @@ export default function AdminSettingsPage({ initialTab }: { initialTab?: string 
     });
 
     try {
-      const res = await api.sendTestSms(testPhone.trim(), `Test SMS from Raifa's Mart! Gateway is verified.`);
+      const res = await api.sendTestSms(testPhone.trim(), `Test SMS from Toolera! Gateway is verified.`);
       if (res.success) {
         setTestSmsResult({ success: true, message: `✅ ${res.message || "Test SMS sent successfully!"}` });
       } else {
@@ -1821,20 +1821,20 @@ function AdminDatabaseBackupCard({ showNotification }: { showNotification: (msg:
     try {
       const backupData = {
         exportedAt: new Date().toISOString(),
-        store: "Raifa's Mart",
-        products: localStorage.getItem("raifas_mart_products_v1") ? JSON.parse(localStorage.getItem("raifas_mart_products_v1")!) : [],
-        orders: localStorage.getItem("raifas_mart_orders_v1") ? JSON.parse(localStorage.getItem("raifas_mart_orders_v1")!) : [],
-        customers: localStorage.getItem("raifas_mart_customers_v1") ? JSON.parse(localStorage.getItem("raifas_mart_customers_v1")!) : [],
-        categories: localStorage.getItem("raifas_mart_categories_v1") ? JSON.parse(localStorage.getItem("raifas_mart_categories_v1")!) : [],
-        reviews: localStorage.getItem("raifas_mart_reviews_v1") ? JSON.parse(localStorage.getItem("raifas_mart_reviews_v1")!) : [],
-        shippingSettings: localStorage.getItem("raifas_mart_shipping_settings_v1") ? JSON.parse(localStorage.getItem("raifas_mart_shipping_settings_v1")!) : {},
+        store: "Toolera",
+        products: localStorage.getItem("toolera_products_v1") ? JSON.parse(localStorage.getItem("toolera_products_v1")!) : [],
+        orders: localStorage.getItem("toolera_orders_v1") ? JSON.parse(localStorage.getItem("toolera_orders_v1")!) : [],
+        customers: localStorage.getItem("toolera_customers_v1") ? JSON.parse(localStorage.getItem("toolera_customers_v1")!) : [],
+        categories: localStorage.getItem("toolera_categories_v1") ? JSON.parse(localStorage.getItem("toolera_categories_v1")!) : [],
+        reviews: localStorage.getItem("toolera_reviews_v1") ? JSON.parse(localStorage.getItem("toolera_reviews_v1")!) : [],
+        shippingSettings: localStorage.getItem("toolera_shipping_settings_v1") ? JSON.parse(localStorage.getItem("toolera_shipping_settings_v1")!) : {},
       };
 
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `raifas-mart-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `toolera-backup-${new Date().toISOString().split("T")[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
       showNotification("Database snapshot downloaded successfully!");
@@ -1853,12 +1853,12 @@ function AdminDatabaseBackupCard({ showNotification }: { showNotification: (msg:
     reader.onload = (evt) => {
       try {
         const data = JSON.parse(evt.target?.result as string);
-        if (data.products) localStorage.setItem("raifas_mart_products_v1", JSON.stringify(data.products));
-        if (data.orders) localStorage.setItem("raifas_mart_orders_v1", JSON.stringify(data.orders));
-        if (data.customers) localStorage.setItem("raifas_mart_customers_v1", JSON.stringify(data.customers));
-        if (data.categories) localStorage.setItem("raifas_mart_categories_v1", JSON.stringify(data.categories));
-        if (data.reviews) localStorage.setItem("raifas_mart_reviews_v1", JSON.stringify(data.reviews));
-        if (data.shippingSettings) localStorage.setItem("raifas_mart_shipping_settings_v1", JSON.stringify(data.shippingSettings));
+        if (data.products) localStorage.setItem("toolera_products_v1", JSON.stringify(data.products));
+        if (data.orders) localStorage.setItem("toolera_orders_v1", JSON.stringify(data.orders));
+        if (data.customers) localStorage.setItem("toolera_customers_v1", JSON.stringify(data.customers));
+        if (data.categories) localStorage.setItem("toolera_categories_v1", JSON.stringify(data.categories));
+        if (data.reviews) localStorage.setItem("toolera_reviews_v1", JSON.stringify(data.reviews));
+        if (data.shippingSettings) localStorage.setItem("toolera_shipping_settings_v1", JSON.stringify(data.shippingSettings));
         showNotification("Store database restored successfully! Reloading page...");
         setTimeout(() => window.location.reload(), 1500);
       } catch (err: any) {
@@ -1931,7 +1931,7 @@ function AdminDatabaseBackupCard({ showNotification }: { showNotification: (msg:
 function AdminSecuritySettingsCard({ showNotification }: { showNotification: (msg: string) => void }) {
   const { adminUser, updateProfile, changePassword } = useAdminAuthStore();
   const [name, setName] = useState(adminUser?.name || "Rafiqul Islam");
-  const [email, setEmail] = useState(adminUser?.email || "admin@raifasmart.com");
+  const [email, setEmail] = useState(adminUser?.email || "admin@toolera.store");
   const [currentPass, setCurrentPass] = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
@@ -2008,7 +2008,7 @@ function AdminSecuritySettingsCard({ showNotification }: { showNotification: (ms
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `raifas-mart-database-backup-${new Date().toISOString().split("T")[0]}.json`;
+                    a.download = `toolera-database-backup-${new Date().toISOString().split("T")[0]}.json`;
                     a.click();
                     URL.revokeObjectURL(url);
                     setNotification("Database backup downloaded successfully!");

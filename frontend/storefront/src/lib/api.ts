@@ -3,7 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 function getAuthHeader(): Record<string, string> {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = localStorage.getItem('raifas_mart_admin_auth_v1');
+    const raw = localStorage.getItem('toolera_admin_auth_v1');
     if (raw) {
       const parsed = JSON.parse(raw);
       const token = parsed?.state?.sessionToken;

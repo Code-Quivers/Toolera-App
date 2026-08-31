@@ -52,7 +52,7 @@ export default function StoreOnboardingWizardPage() {
 
   // Step 2: Branding
   const [tagline, setTagline] = useState("Curated products for everyday lifestyle");
-  const [logoUrl, setLogoUrl] = useState("/assets/favicon.png");
+  const [logoUrl, setLogoUrl] = useState("/logo.png");
   const [primaryColor, setPrimaryColor] = useState("#0F172A");
   const [accentColor, setAccentColor] = useState("#008B47");
   const [secondaryColor, setSecondaryColor] = useState("#F59E0B");
@@ -182,8 +182,8 @@ export default function StoreOnboardingWizardPage() {
 
   // One-click autofill with standard high-converting Bangladeshi settings
   const handleAutofillStore = () => {
-    setStoreName("Raifa's Boutique BD");
-    setSlug("raifas-boutique-bd");
+    setStoreName("Toolera Store");
+    setSlug("toolera-store");
     setCategory("Fashion & Apparel");
     setDescription("Premium modest fashion, authentic fabrics, and curated collections across Bangladesh.");
     setTagline("Exclusive collections delivered to your doorstep in 1–3 days.");
@@ -310,7 +310,7 @@ export default function StoreOnboardingWizardPage() {
             <Store className="w-4 h-4" />
           </div>
           <div>
-            <span className="font-extrabold text-slate-900 text-sm block leading-none">Raifa's Mart</span>
+            <span className="font-extrabold text-slate-900 text-sm block leading-none">Toolera</span>
             <span className="text-[10px] text-slate-400 font-mono">Store Setup Wizard</span>
           </div>
         </div>
@@ -726,7 +726,7 @@ export default function StoreOnboardingWizardPage() {
 
       {/* Footer */}
       <footer className="text-center text-[11px] text-slate-400 pb-4">
-        &copy; 2026 Raifa's Mart SaaS E-Commerce Platform. All rights reserved.
+        &copy; 2026 Toolera SaaS E-Commerce Platform. All rights reserved.
       </footer>
     </div>
   );

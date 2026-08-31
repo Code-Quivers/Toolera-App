@@ -491,7 +491,7 @@ export default function AdminHeaderPage() {
                 type="text"
                 value={settings.ogTitle || ""}
                 onChange={(e) => updateSettings({ ogTitle: e.target.value })}
-                placeholder="Raifa's Mart — Discover What's Trending. Smart Finds."
+                placeholder="Toolera — Discover What's Trending. Smart Finds."
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-bold focus:bg-white focus:outline-none focus:border-emerald-600"
               />
             </div>
@@ -532,10 +532,10 @@ export default function AdminHeaderPage() {
 
                 <div className="p-3.5 space-y-1">
                   <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                    raifasmart.com
+                    toolera.store
                   </div>
                   <div className="font-extrabold text-slate-900 text-xs line-clamp-1 leading-snug">
-                    {settings.ogTitle || "Raifa's Mart — Discover What's Trending"}
+                    {settings.ogTitle || "Toolera — Discover What's Trending"}
                   </div>
                   <div className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                     {settings.ogDescription ||

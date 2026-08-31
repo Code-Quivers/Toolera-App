@@ -23,12 +23,35 @@ import { useTenantStore } from "@/store/useTenantStore";
 import { useProductStore } from "@/store/useProductStore";
 import { useOrderStore } from "@/store/useOrderStore";
 
+function BillingSkeleton() {
+  return (
+    <div className="space-y-6 w-full pb-16 animate-pulse">
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-8 h-28 flex items-center gap-4">
+        <div className="w-14 h-14 rounded-2xl bg-slate-200 shrink-0" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 bg-slate-200 rounded w-24" />
+          <div className="h-6 bg-slate-200 rounded w-56" />
+          <div className="h-3 bg-slate-200 rounded w-40" />
+        </div>
+        <div className="w-32 h-10 bg-slate-200 rounded-xl" />
+      </div>
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-8 space-y-4">
+        <div className="h-4 bg-slate-200 rounded w-48" />
+        <div className="grid grid-cols-4 gap-4">
+          {[0,1,2,3].map(i => <div key={i} className="h-20 bg-slate-100 rounded-2xl" />)}
+        </div>
+      </div>
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-8 h-40" />
+    </div>
+  );
+}
+
 export default function AdminBillingPage() {
-  const { activeStore, isPaymentPending, markSubscriptionPaid } = useTenantStore();
+  const { activeStore, isLoading, isPaymentPending, markSubscriptionPaid } = useTenantStore();
   const { products } = useProductStore();
   const { orders } = useOrderStore();
 
-  const isDefaultStore = !isPaymentPending && (activeStore?.id === "default_store" || activeStore?.slug === "raifas-mart");
+  const isDefaultStore = !isPaymentPending && (activeStore?.id === "default_store" || activeStore?.slug === "toolera");
   const storeOrders = isDefaultStore ? orders : orders.filter((o: any) => o.storeId === activeStore?.id);
   const storeProducts = isDefaultStore ? products : products.filter((p: any) => p.storeId === activeStore?.id);
 
@@ -64,10 +87,10 @@ export default function AdminBillingPage() {
     productsMax: planInfo?.maxProducts || (planSlug === "pro" ? 1000 : planSlug === "starter" ? 100 : 500),
     ordersUsed: storeOrders.length,
     ordersMax: planInfo?.maxOrdersPerMonth || (planSlug === "pro" ? 3000 : planSlug === "starter" ? 500 : 1000),
-    staffUsed: 1,
-    staffMax: planSlug === "pro" ? 15 : planSlug === "starter" ? 2 : 5,
+    staffUsed: activeStore?.members?.length ?? 1,
+    staffMax: planInfo?.maxStaffMembers ?? (planSlug === "pro" ? 15 : planSlug === "starter" ? 2 : 5),
     storageMbUsed: storeProducts.length * 15,
-    storageMbMax: planSlug === "pro" ? 20000 : planSlug === "starter" ? 2000 : 5000,
+    storageMbMax: planInfo?.maxStorageMb ?? (planSlug === "pro" ? 20000 : planSlug === "starter" ? 2048 : 5000),
   };
 
   const invoices = isPaymentPending
@@ -82,6 +105,8 @@ export default function AdminBillingPage() {
           method: "bKash / Nagad",
         },
       ];
+
+  if (isLoading) return <BillingSkeleton />;
 
   return (
     <div className="space-y-6 w-full pb-16">
@@ -259,7 +284,7 @@ export default function AdminBillingPage() {
               <span className="text-slate-500 flex items-center gap-1">
                 <HardDrive className="w-3.5 h-3.5 text-slate-400" /> Media Storage
               </span>
-              <span className="text-slate-900">{currentPlan.storageMbUsed}MB / 5GB</span>
+              <span className="text-slate-900">{currentPlan.storageMbUsed}MB / {currentPlan.storageMbMax >= 1024 ? `${Math.round(currentPlan.storageMbMax / 1024)}GB` : `${currentPlan.storageMbMax}MB`}</span>
             </div>
             <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
@@ -280,7 +305,7 @@ export default function AdminBillingPage() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-black text-slate-900">Features Active in Your Plan</h3>
-            <p className="text-xs text-slate-500">Your Growth plan grants access to all essential e-commerce tools.</p>
+            <p className="text-xs text-slate-500">Your {planName} plan grants access to all essential e-commerce tools.</p>
           </div>
           <Link href="/onboarding/plan" className="text-xs font-bold text-[#008B47] hover:underline">
             View All Plans →

@@ -288,7 +288,7 @@ export default function AdminEditProductPage() {
       customDeliveryOutsideDhaka: `৳${deliveryChargeOutside} (2–4 Days)`,
       warranty,
       returnPolicy,
-      seoTitle: seoTitle || `${title} | Raifa's Mart`,
+      seoTitle: seoTitle || `${title} | Toolera`,
       seoDescription: seoDescription || shortDesc,
     };
 

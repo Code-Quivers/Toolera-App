@@ -18,13 +18,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Raifa's Mart — Discover What's Trending",
-    template: "%s | Raifa's Mart",
+    default: "Toolera — Discover What's Trending",
+    template: "%s | Toolera",
   },
   icons: {
-    icon: "/assets/favicon.png",
-    shortcut: "/assets/favicon.png",
-    apple: "/assets/favicon.png",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
   description: siteConfig.description,
   keywords: [
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
     "unique lifestyle items",
     "cash on delivery bangladesh",
   ],
-  authors: [{ name: "Raifa's Mart" }],
-  creator: "Raifa's Mart",
+  authors: [{ name: "Toolera" }],
+  creator: "Toolera",
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteConfig.url,
-    title: "Raifa's Mart — Curated China Finds for Bangladesh",
+    title: "Toolera — Curated China Finds for Bangladesh",
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name }],
@@ -68,7 +68,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-white text-slate-900 antialiased font-sans">
+      <body className="min-h-screen bg-white text-slate-900 antialiased font-sans" suppressHydrationWarning>
         <GlobalDataSyncProvider>
           <Suspense fallback={null}>
             <NavigationProgress />

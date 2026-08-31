@@ -1,7 +1,14 @@
 import { Router } from 'express';
 import { storeController } from './store.controller.js';
+import { requireAuth } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
+
+// Slug availability check (public — no auth needed)
+router.get('/check-slug/:slug', storeController.checkSlug);
+
+// Current user's store
+router.get('/me', requireAuth, storeController.getMyStore);
 
 // Store routes
 router.get('/', storeController.listStores);

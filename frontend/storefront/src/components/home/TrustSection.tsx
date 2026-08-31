@@ -74,7 +74,7 @@ export function TrustSection({ settings }: TrustSectionProps = {}) {
     settings?.title ||
     settings?.headline ||
     settings?.heading ||
-    "Why Shop With Raifa's Mart?";
+    "Why Shop With Toolera?";
 
   const subtitle =
     settings?.subtitle ||

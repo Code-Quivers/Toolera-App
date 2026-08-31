@@ -3,8 +3,8 @@ import AdminSettingsPage from "../page";
 export default async function AdminSettingsTabRoute({
   params,
 }: {
-  params: Promise<{ tab: string }> | { tab: string };
+  params: Promise<{ tab: string }>;
 }) {
-  const resolvedParams = await Promise.resolve(params);
-  return <AdminSettingsPage initialTab={resolvedParams?.tab || "shipping"} />;
+  const { tab } = await params;
+  return <AdminSettingsPage initialTab={tab || "shipping"} />;
 }

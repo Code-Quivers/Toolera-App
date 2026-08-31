@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
   const [securityFeedback, setSecurityFeedback] = useState<string | null>(null);
 
   // Multi-tenant store-aware data isolation
-  const isDefaultStore = !isPaymentPending && (activeStore?.id === "default_store" || activeStore?.slug === "raifas-mart");
+  const isDefaultStore = !isPaymentPending && (activeStore?.id === "default_store" || activeStore?.slug === "toolera");
   const storeOrders = isDefaultStore ? orders : orders.filter((o: any) => o.storeId === activeStore?.id);
   const storeProducts = isDefaultStore ? products : products.filter((p: any) => p.storeId === activeStore?.id);
   const storeCustomers = isDefaultStore ? customers : customers.filter((c: any) => c.storeId === activeStore?.id);

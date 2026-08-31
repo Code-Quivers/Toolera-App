@@ -19,7 +19,7 @@ export default function PlatformStoresListPage() {
   const [activeFilter, setActiveFilter] = useState("ALL");
 
   const stores = [
-    { id: "1", name: "Raifa's Mart", slug: "raifas-mart", owner: "Rahim Chowdhury", email: "admin@raifasmart.com", plan: "Growth", status: "ACTIVE", products: 4, orders: 16, revenue: "৳24,500" },
+    { id: "1", name: "Toolera", slug: "toolera", owner: "Rahim Chowdhury", email: "admin@toolera.store", plan: "Growth", status: "ACTIVE", products: 4, orders: 16, revenue: "৳24,500" },
     { id: "2", name: "Gadget World", slug: "gadget-world", owner: "Tanvir Ahmed", email: "tanvir@gadgets.com", plan: "Starter", status: "ACTIVE", products: 18, orders: 42, revenue: "৳68,200" },
     { id: "3", name: "Dhaka Fashion House", slug: "dhaka-fashion", owner: "Sadia Islam", email: "sadia@fashion.com", plan: "Pro", status: "ACTIVE", products: 210, orders: 184, revenue: "৳2,45,000" },
     { id: "4", name: "Organic Bazar BD", slug: "organic-bazar", owner: "Kamal Hossain", email: "kamal@organic.com", plan: "Starter", status: "TRIALING", products: 35, orders: 11, revenue: "৳14,900" },

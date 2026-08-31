@@ -135,14 +135,14 @@ export function ProductDetailsClient({ product, relatedProducts }: ProductDetail
   // Dynamic Document Title for SEO & Browser Tab
   React.useEffect(() => {
     if (product?.title) {
-      document.title = product.metaTitle || `${product.title} | Raifa's Mart`;
+      document.title = product.metaTitle || `${product.title} | Toolera`;
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
         metaDesc.setAttribute(
           "content",
           product.metaDescription ||
             product.shortDescription ||
-            `Buy ${product.title} online at best price in Bangladesh from Raifa's Mart.`
+            `Buy ${product.title} online at best price in Bangladesh from Toolera.`
         );
       }
     }
@@ -713,7 +713,7 @@ export function ProductDetailsClient({ product, relatedProducts }: ProductDetail
                 type="button"
                 onClick={() => {
                   const varText = activeVariation ? ` (${activeVariation.attributes.map((a) => a.valueName).join(", ")})` : "";
-                  const msg = `Hi Raifa's Mart, I want to order "${product.title}"${varText} (Qty: ${quantity}, Total: ${formatPrice(currentPrice * quantity)}). Please confirm delivery details.`;
+                  const msg = `Hi Toolera, I want to order "${product.title}"${varText} (Qty: ${quantity}, Total: ${formatPrice(currentPrice * quantity)}). Please confirm delivery details.`;
                   window.open(`https://wa.me/8801712345678?text=${encodeURIComponent(msg)}`, "_blank");
                 }}
                 className="w-full py-3 px-6 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-xs"
@@ -1404,7 +1404,7 @@ export function ProductDetailsClient({ product, relatedProducts }: ProductDetail
                             <div className="flex items-center justify-between">
                               <span className="font-black text-slate-900 flex items-center gap-1.5">
                                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>{rev.adminReply.repliedBy || "Raifa's Mart Response"}</span>
+                                <span>{rev.adminReply.repliedBy || "Toolera Response"}</span>
                               </span>
                               <span className="text-[10px] text-slate-400">{rev.adminReply.date}</span>
                             </div>

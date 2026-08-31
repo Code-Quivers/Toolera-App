@@ -29,7 +29,7 @@ export const DEFAULT_THEME: ThemeSettingsState = {
 function loadPublished(): CMSSectionItem[] {
   if (typeof window === "undefined") return DEFAULT_HOMEPAGE_SECTIONS;
   try {
-    for (const k of ["raifas_mart_cms_engine_v3", "raifas_mart_cms_engine_v2", "raifas_mart_cms_engine"]) {
+    for (const k of ["toolera_cms_engine_v3", "toolera_cms_engine_v2", "toolera_cms_engine"]) {
       const raw = localStorage.getItem(k);
       if (raw) {
         const p = JSON.parse(raw);
@@ -44,7 +44,7 @@ function loadPublished(): CMSSectionItem[] {
 function loadTheme(): ThemeSettingsState {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
-    const raw = localStorage.getItem("raifas_mart_theme_v1");
+    const raw = localStorage.getItem("toolera_theme_v1");
     return raw ? { ...DEFAULT_THEME, ...JSON.parse(raw) } : DEFAULT_THEME;
   } catch { return DEFAULT_THEME; }
 }
