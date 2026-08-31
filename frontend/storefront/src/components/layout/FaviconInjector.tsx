@@ -151,7 +151,7 @@ export function FaviconInjector() {
 
   // 2. Favicon & Social Share Image Synchronization
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !settings) return;
 
     // Update Browser Tab Favicon
     if (settings.faviconUrl) {
@@ -204,11 +204,11 @@ export function FaviconInjector() {
       if (ogDescTag) ogDescTag.content = settings.ogDescription;
     }
   }, [
-    settings.faviconUrl,
-    settings.ogImageUrl,
-    settings.logoImageUrl,
-    settings.ogTitle,
-    settings.ogDescription,
+    settings?.faviconUrl,
+    settings?.ogImageUrl,
+    settings?.logoImageUrl,
+    settings?.ogTitle,
+    settings?.ogDescription,
   ]);
 
   return null;
