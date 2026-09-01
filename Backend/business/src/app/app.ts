@@ -10,6 +10,13 @@ import { couponsRouter } from './modules/coupons/coupons.route.js';
 import { courierRouter } from './modules/courier/courier.route.js';
 import paymentRouter from './modules/payment/payment.route.js';
 import { uploadRouter } from './modules/upload/upload.route.js';
+import { authRouter } from './modules/auth/auth.route.js';
+import { expensesRouter } from './modules/expenses/expenses.route.js';
+import { stockLogsRouter } from './modules/stock-logs/stock-logs.route.js';
+import { customersRouter } from './modules/customers/customers.route.js';
+import { attributesRouter } from './modules/attributes/attributes.route.js';
+import { subscriptionsRouter } from './modules/subscriptions/subscriptions.route.js';
+import { storesRouter } from './modules/stores/stores.route.js';
 
 dotenv.config();
 
@@ -19,7 +26,15 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 app.use(
   cors({
-    origin: [FRONTEND_URL, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5000',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:5000',
+    ],
     credentials: true,
   })
 );
@@ -35,14 +50,21 @@ app.get('/health', (_req, res) => {
   });
 });
 
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/subscriptions', subscriptionsRouter);
+app.use('/api/v1/stores', storesRouter);
 app.use('/api/v1/products', productsRouter);
 app.use('/api/v1/categories', categoriesRouter);
 app.use('/api/v1/orders', ordersRouter);
 app.use('/api/v1/reviews', reviewsRouter);
+app.use('/api/v1/customers', customersRouter);
 app.use('/api/v1/coupons', couponsRouter);
 app.use('/api/v1/courier', courierRouter);
 app.use('/api/v1/payment', paymentRouter);
+app.use('/api/v1/attributes', attributesRouter);
 app.use('/api/v1/upload', uploadRouter);
+app.use('/api/v1/expenses', expensesRouter);
+app.use('/api/v1/stock-logs', stockLogsRouter);
 
 app.use(errorHandler);
 

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { siteConfig } from "@/config/site";
 import { Suspense } from "react";
 import { FaviconInjector } from "@/components/layout/FaviconInjector";
 import { ThemeInjector } from "@/components/layout/ThemeInjector";
@@ -9,6 +8,7 @@ import { SoftLoadingBar } from "@/components/layout/SoftLoadingBar";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
 import { CustomerAuthModal } from "@/components/auth/CustomerAuthModal";
 import { GlobalDataSyncProvider } from "@/components/providers/GlobalDataSyncProvider";
+import { fetchStoreInfo } from "@/lib/api/ssr";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,45 +16,37 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Toolera — Discover What's Trending",
-    template: "%s | Toolera",
-  },
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
-  description: siteConfig.description,
-  keywords: [
-    "china trendy products",
-    "smart gadgets bangladesh",
-    "desk setup accessories",
-    "viral products dhaka",
-    "unique lifestyle items",
-    "cash on delivery bangladesh",
-  ],
-  authors: [{ name: "Toolera" }],
-  creator: "Toolera",
-  metadataBase: new URL(siteConfig.url),
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: siteConfig.url,
-    title: "Toolera — Curated China Finds for Bangladesh",
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: siteConfig.name,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-  },
-  robots: { index: true, follow: true },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await fetchStoreInfo();
+  const seo = cms?.seo;
+  const storeName = seo?.defaultTitle || process.env.NEXT_PUBLIC_SITE_NAME || "My Store";
+  const storeDesc = seo?.defaultDescription || "Discover our products.";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+  return {
+    title: {
+      default: storeName,
+      template: `%s | ${storeName}`,
+    },
+    description: storeDesc,
+    metadataBase: new URL(siteUrl),
+    icons: { icon: "/logo.png", shortcut: "/logo.png", apple: "/logo.png" },
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      url: siteUrl,
+      title: storeName,
+      description: storeDesc,
+      siteName: storeName,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: storeName,
+      description: storeDesc,
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0F172A",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCmsStore } from "@/lib/cms/useCmsStore";
 import { HomepageThemeLayout } from "@/lib/cms/types";
 import {
@@ -27,9 +27,49 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+const FONT_OPTIONS = [
+  // ── English / Latin Fonts ──────────────────────────────────────────────────
+  { label: "Inter (Modern Clean)", value: "Inter, sans-serif", gfName: "Inter" },
+  { label: "Plus Jakarta Sans (Tech / SaaS)", value: "'Plus Jakarta Sans', sans-serif", gfName: "Plus+Jakarta+Sans" },
+  { label: "Poppins (Friendly & Bold)", value: "'Poppins', sans-serif", gfName: "Poppins" },
+  { label: "DM Sans (Minimal / Startup)", value: "'DM Sans', sans-serif", gfName: "DM+Sans" },
+  { label: "Outfit (Trendy DTC)", value: "'Outfit', sans-serif", gfName: "Outfit" },
+  { label: "Nunito (Rounded / Friendly)", value: "'Nunito', sans-serif", gfName: "Nunito" },
+  { label: "Montserrat (Strong / Bold)", value: "'Montserrat', sans-serif", gfName: "Montserrat" },
+  { label: "Raleway (Elegant / Fashion)", value: "'Raleway', sans-serif", gfName: "Raleway" },
+  { label: "Urbanist (Premium / Lifestyle)", value: "'Urbanist', sans-serif", gfName: "Urbanist" },
+  { label: "Space Grotesk (Tech / Developer)", value: "'Space Grotesk', sans-serif", gfName: "Space+Grotesk" },
+  { label: "Sora (Modern / Clean)", value: "'Sora', sans-serif", gfName: "Sora" },
+  { label: "Figtree (SaaS / Startup)", value: "'Figtree', sans-serif", gfName: "Figtree" },
+  { label: "Josefin Sans (Luxury / Editorial)", value: "'Josefin Sans', sans-serif", gfName: "Josefin+Sans" },
+  { label: "Lato (Professional / Corporate)", value: "'Lato', sans-serif", gfName: "Lato" },
+  { label: "Open Sans (Readable / Standard)", value: "'Open Sans', sans-serif", gfName: "Open+Sans" },
+  { label: "Roboto (Classic / Android)", value: "'Roboto', sans-serif", gfName: "Roboto" },
+  { label: "System Default", value: "system-ui, sans-serif", gfName: null },
+  // ── Bangla / Bengali Fonts ────────────────────────────────────────────────
+  { label: "Hind Siliguri (বাংলা — সহজ পাঠযোগ্য)", value: "'Hind Siliguri', sans-serif", gfName: "Hind+Siliguri" },
+  { label: "Noto Sans Bengali (বাংলা — গুগল স্ট্যান্ডার্ড)", value: "'Noto Sans Bengali', sans-serif", gfName: "Noto+Sans+Bengali" },
+  { label: "Baloo Da 2 (বাংলা — গোলাকার ও বোল্ড)", value: "'Baloo Da 2', sans-serif", gfName: "Baloo+Da+2" },
+  { label: "Tiro Bangla (বাংলা — ক্লাসিক সেরিফ)", value: "'Tiro Bangla', serif", gfName: "Tiro+Bangla" },
+  { label: "Anek Bangla (বাংলা — আধুনিক ডিসপ্লে)", value: "'Anek Bangla', sans-serif", gfName: "Anek+Bangla" },
+];
+
 export default function AdminThemePage() {
   const { theme, updateTheme, switchThemeLayout, revisions, rollbackToRevision } = useCmsStore();
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Dynamically load Google Font when font changes
+  useEffect(() => {
+    const fontOption = FONT_OPTIONS.find(f => f.value === theme.bodyFont);
+    if (!fontOption?.gfName) return;
+    const linkId = `gf-${fontOption.gfName}`;
+    if (document.getElementById(linkId)) return;
+    const link = document.createElement("link");
+    link.id = linkId;
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${fontOption.gfName}:wght@400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(link);
+  }, [theme.bodyFont]);
   const [previewModalLayout, setPreviewModalLayout] = useState<{
     title: string;
     industry: string;
@@ -680,14 +720,14 @@ export default function AdminThemePage() {
                 <label className="font-bold text-slate-700">Store Typography Font</label>
                 <select
                   value={theme.bodyFont}
-                  onChange={(e) => updateTheme({ bodyFont: e.target.value })}
+                  onChange={(e) => updateTheme({ bodyFont: e.target.value, headingFont: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-bold"
                 >
-                  <option value="Inter, sans-serif">Inter (Modern Clean)</option>
-                  <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans (Tech / SaaS)</option>
-                  <option value="'Outfit', sans-serif">Outfit (Trendy DTC)</option>
-                  <option value="system-ui, sans-serif">System Default</option>
+                  {FONT_OPTIONS.map(f => (
+                    <option key={f.value} value={f.value}>{f.label}</option>
+                  ))}
                 </select>
+                <p className="text-[11px] text-slate-400 mt-1">Preview updates live. Save Settings to persist.</p>
               </div>
             </div>
           </div>
@@ -710,7 +750,7 @@ export default function AdminThemePage() {
             </div>
 
             {/* Live Product Card Mockup */}
-            <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 space-y-4">
+            <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 space-y-4" style={{ fontFamily: theme.bodyFont }}>
               <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-800 flex items-center justify-center">
                 <img
                   src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=500&q=80"

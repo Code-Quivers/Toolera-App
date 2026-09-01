@@ -31,6 +31,8 @@ import { useHeaderStore, defaultHeaderSettings } from "@/store/useHeaderStore";
 import { useCustomerAuthStore } from "@/store/useCustomerAuthStore";
 import { CategoryMegaMenu } from "@/components/layout/CategoryMegaMenu";
 
+const STOREFRONT_URL = (process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000").replace(/\/$/, "");
+
 export function Header() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -234,18 +236,18 @@ export function Header() {
               <span>{headerSettings.topBarText}</span>
             </div>
             <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold shrink-0">
-              <Link href="/track-order" className="hover:underline text-amber-300 font-extrabold flex items-center gap-1">
+              <a href={`${STOREFRONT_URL}/track-order`} target="_blank" rel="noopener noreferrer" className="hover:underline text-amber-300 font-extrabold flex items-center gap-1">
                 <span>🚚 Track Order</span>
-              </Link>
-              <Link href="/pages/about-us" className="hover:underline opacity-90">
+              </a>
+              <a href={`${STOREFRONT_URL}/pages/about-us`} target="_blank" rel="noopener noreferrer" className="hover:underline opacity-90">
                 About Us
-              </Link>
-              <Link href="/pages/contact" className="hover:underline opacity-90">
+              </a>
+              <a href={`${STOREFRONT_URL}/pages/contact`} target="_blank" rel="noopener noreferrer" className="hover:underline opacity-90">
                 Contact &amp; Hotline
-              </Link>
-              <Link href="/pages/delivery" className="hover:underline opacity-90">
+              </a>
+              <a href={`${STOREFRONT_URL}/pages/delivery`} target="_blank" rel="noopener noreferrer" className="hover:underline opacity-90">
                 Delivery Info
-              </Link>
+              </a>
             </div>
           </div>
         </div>

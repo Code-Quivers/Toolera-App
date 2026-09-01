@@ -26,7 +26,7 @@ async function activateTrialSubscription(storeId: string) {
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
     body: JSON.stringify({
       storeId,
-      planSlug: "free",
+      planSlug: "free-trial",
       billingCycle: "MONTHLY",
       paymentMethod: "DEMO",
       transactionId: `TRIAL_${Date.now()}`,
@@ -108,7 +108,7 @@ function OnboardingCompleteContent() {
           </p>
           {isTrial && (
             <p className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 inline-block">
-              ⚡ Free 15-Day Trial activated — full access, no credit card required
+              ⚡ Free 30-Day Trial activated — full access, no credit card required
             </p>
           )}
         </div>

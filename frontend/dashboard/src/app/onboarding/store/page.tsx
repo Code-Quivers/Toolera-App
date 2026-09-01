@@ -209,7 +209,7 @@ export default function StoreOnboardingWizardPage() {
         description: description.trim() || tagline,
         currency: "BDT",
         currencySymbol: "৳",
-        planSlug: "starter",
+        planSlug: "free-trial",
       });
       setPaymentPending(true);
       router.push("/admin");
@@ -264,7 +264,7 @@ export default function StoreOnboardingWizardPage() {
         description: description.trim() || tagline,
         currency: "BDT",
         currencySymbol: "৳",
-        planSlug: "starter",
+        planSlug: "free-trial",
       });
 
       // Save onboarding preferences into localStorage for session continuity
@@ -704,6 +704,7 @@ export default function StoreOnboardingWizardPage() {
                   </button>
                 </div>
 
+                {/* Skip Payment button hidden
                 <div className="text-center pt-2">
                   <button
                     type="button"
@@ -718,6 +719,7 @@ export default function StoreOnboardingWizardPage() {
                     Store navigation tabs will remain hidden until payment is activated from your dashboard.
                   </p>
                 </div>
+                */}
               </div>
             </form>
           )}

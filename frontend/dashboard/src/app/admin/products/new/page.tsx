@@ -178,80 +178,118 @@ export default function AdminNewProductPage() {
     setSpecValue("");
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Upload any local device images (base64) to MinIO, return array of CDN URLs
+  const uploadLocalImages = async (imgs: string[]): Promise<string[]> => {
+    const results: string[] = [];
+    for (const img of imgs) {
+      if (!img.startsWith("data:")) {
+        results.push(img); // already a URL
+        continue;
+      }
+      try {
+        const blob = await fetch(img).then(r => r.blob());
+        const form = new FormData();
+        form.append("image", blob, `product-${Date.now()}.jpg`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/v1/upload/single`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("rm_admin_token") || ""}` },
+          body: form,
+        }).then(r => r.json());
+        if (res?.data?.url) results.push(res.data.url);
+      } catch { /* skip failed uploads */ }
+    }
+    return results;
+  };
+
   // Save / Publish
-  const handleSave = (publishStatus: "PUBLISHED" | "DRAFT") => {
+  const handleSave = async (publishStatus: "PUBLISHED" | "DRAFT") => {
     if (!title.trim()) {
       alert("Please enter a product title");
       return;
     }
+    if (isSaving) return;
+    setIsSaving(true);
 
-    const finalSlug = slug || slugify(title);
-    const primaryBadge = badgeNew
-      ? "NEW"
-      : badgeTrending
-      ? "TRENDING"
-      : badgeBestSeller
-      ? "BEST SELLER"
-      : badgeFeatured
-      ? "HOT"
-      : badgeOnSale
-      ? "SALE"
-      : undefined;
+    try {
+      const finalSlug = slug || slugify(title);
+      const primaryBadge = badgeNew
+        ? "NEW"
+        : badgeTrending
+        ? "TRENDING"
+        : badgeBestSeller
+        ? "BEST SELLER"
+        : badgeFeatured
+        ? "HOT"
+        : badgeOnSale
+        ? "SALE"
+        : undefined;
 
-    const selectedCat = category || (categories[0]?.name ?? "General");
-    const catObj = categories.find((c) => c.name.toLowerCase() === selectedCat.toLowerCase());
-    const catSlug = catObj?.slug || slugify(selectedCat);
+      const selectedCat = category || (categories[0]?.name ?? "General");
+      const catObj = categories.find((c) => c.name.toLowerCase() === selectedCat.toLowerCase());
+      const catSlug = catObj?.slug || slugify(selectedCat);
 
-    const newProduct: ExtendedProduct = {
-      id: `prod-${Date.now()}`,
-      title,
-      slug: finalSlug,
-      category: selectedCat,
-      categorySlug: catSlug,
-      price: Number(price) || 0,
-      compareAtPrice: Number(comparePrice) || Number(price) || 0,
-      costPrice: Number(costPrice) || 0,
-      sku: sku || `RM-${Math.floor(1000 + Math.random() * 9000)}`,
-      stock: Number(stock) || 0,
-      shortDescription: shortDesc,
-      description: fullDesc,
-      images: images.length > 0 ? images : ["https://placehold.co/800x800/f1f5f9/64748b?text=Product+Photo"],
-      videoUrl: videoUrl.trim() || undefined,
-      videoThumbnail: videoThumbnail.trim() || undefined,
-      badge: primaryBadge as any,
-      tags,
-      rating: 5.0,
-      reviewCount: 0,
-      isTrending: badgeTrending,
-      isNewArrival: badgeNew,
-      isBestSeller: badgeBestSeller,
-      isFeatured: badgeFeatured,
-      isOnSale: badgeOnSale,
-      status: publishStatus,
-      publishDate,
-      features: features,
-      specifications,
-      productType,
-      productAttributes: productType === "VARIABLE" ? productAttributes : undefined,
-      productVariations: productType === "VARIABLE" ? productVariations : undefined,
-      defaultVariationId: productType === "VARIABLE" ? defaultVariationId : undefined,
-      deliveryType,
-      customDeliveryInsideDhaka: `৳${deliveryChargeInside} (1–2 Days)`,
-      customDeliveryOutsideDhaka: `৳${deliveryChargeOutside} (2–4 Days)`,
-      warranty,
-      returnPolicy,
-      showFlashSaleCountdown,
-      showBundleDiscounts,
-      seoTitle: seoTitle || `${title} | Toolera`,
-      seoDescription: seoDescription || shortDesc,
-    };
+      // Upload local device images to MinIO before saving
+      const resolvedImages = await uploadLocalImages(
+        images.length > 0 ? images : []
+      );
 
-    addProduct(newProduct);
-    setNotification(publishStatus === "PUBLISHED" ? "Product published successfully to live store!" : "Product draft saved!");
+      const newProduct: ExtendedProduct = {
+        id: `prod-${Date.now()}`,
+        title,
+        slug: finalSlug,
+        category: selectedCat,
+        categorySlug: catSlug,
+        price: Number(price) || 0,
+        compareAtPrice: Number(comparePrice) || Number(price) || 0,
+        costPrice: Number(costPrice) || 0,
+        sku: sku || `RM-${Math.floor(1000 + Math.random() * 9000)}`,
+        stock: Number(stock) || 0,
+        shortDescription: shortDesc,
+        description: fullDesc,
+        images: resolvedImages,
+        videoUrl: videoUrl.trim() || undefined,
+        videoThumbnail: videoThumbnail.trim() || undefined,
+        badge: primaryBadge as any,
+        tags,
+        rating: 5.0,
+        reviewCount: 0,
+        isTrending: badgeTrending,
+        isNewArrival: badgeNew,
+        isBestSeller: badgeBestSeller,
+        isFeatured: badgeFeatured,
+        isOnSale: badgeOnSale,
+        status: publishStatus,
+        publishDate,
+        features,
+        specifications,
+        productType,
+        productAttributes: productType === "VARIABLE" ? productAttributes : undefined,
+        productVariations: productType === "VARIABLE" ? productVariations : undefined,
+        defaultVariationId: productType === "VARIABLE" ? defaultVariationId : undefined,
+        deliveryType,
+        customDeliveryInsideDhaka: `৳${deliveryChargeInside} (1–2 Days)`,
+        customDeliveryOutsideDhaka: `৳${deliveryChargeOutside} (2–4 Days)`,
+        warranty,
+        returnPolicy,
+        showFlashSaleCountdown,
+        showBundleDiscounts,
+        seoTitle: seoTitle || `${title} | Toolera`,
+        seoDescription: seoDescription || shortDesc,
+      };
 
-    setTimeout(() => {
-      router.push("/admin/products");
-    }, 1200);
+      await addProduct(newProduct);
+      setNotification(publishStatus === "PUBLISHED" ? "Product published successfully to live store!" : "Product draft saved!");
+
+      setTimeout(() => {
+        router.push("/admin/products");
+      }, 1200);
+    } catch (err: any) {
+      alert(`Failed to save product: ${err?.message || "Unknown error"}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Price discount calculator
@@ -285,17 +323,19 @@ export default function AdminNewProductPage() {
           <button
             type="button"
             onClick={() => handleSave("DRAFT")}
-            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-xs"
+            disabled={isSaving}
+            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save as Draft
+            {isSaving ? "Saving..." : "Save as Draft"}
           </button>
           <button
             type="button"
             onClick={() => handleSave("PUBLISHED")}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5"
+            disabled={isSaving}
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check className="w-4 h-4" />
-            <span>Save &amp; Publish</span>
+            <span>{isSaving ? "Saving..." : "Save & Publish"}</span>
           </button>
         </div>
       </div>
@@ -792,6 +832,15 @@ export default function AdminNewProductPage() {
                     className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-[#008B47]"
                   />
                 </div>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="Video thumbnail image URL (optional)"
+                    value={videoThumbnail}
+                    onChange={(e) => setVideoThumbnail(e.target.value)}
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:border-[#008B47]"
+                  />
+                </div>
               </div>
             ) : (
               /* Video Preview Box */
@@ -998,6 +1047,18 @@ export default function AdminNewProductPage() {
                   <div className="text-[11px] text-slate-400">Publish at a specific date and time</div>
                 </div>
               </label>
+
+              {status === "SCHEDULED" && (
+                <div className="mt-2 space-y-1">
+                  <label className="font-bold text-slate-700 text-xs">Publish Date &amp; Time</label>
+                  <input
+                    type="datetime-local"
+                    value={publishDate}
+                    onChange={(e) => setPublishDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:outline-none focus:border-emerald-600"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

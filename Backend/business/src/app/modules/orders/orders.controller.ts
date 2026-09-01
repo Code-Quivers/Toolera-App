@@ -1,8 +1,29 @@
 import { Request, Response } from 'express';
 import { eq, isNull, desc, or, ilike, and, gte, count } from 'drizzle-orm';
 import { db, rdb } from '../../db/index.js';
-import { ordersTable, orderItemsTable, orderStatusHistoriesTable, abandonedLeadsTable } from '../../db/schema.js';
+import { ordersTable, orderItemsTable, orderStatusHistoriesTable, abandonedLeadsTable, productsTable, storesTable, storeMembersTable } from '../../db/schema.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
+
+async function resolveStoreId(req: AuthRequest): Promise<string | null> {
+  if (req.query.storeId) return String(req.query.storeId);
+  if (req.query.storeSlug) {
+    const store = await rdb().select({ id: storesTable.id }).from(storesTable)
+      .where(eq(storesTable.slug, String(req.query.storeSlug))).limit(1).then(r => r[0] ?? null);
+    if (store) return store.id;
+  }
+  const host = ((req.headers['x-forwarded-host'] || req.headers.host || '') as string).split(':')[0];
+  if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+    const byDomain = await rdb().select({ id: storesTable.id }).from(storesTable)
+      .where(eq(storesTable.customDomain, host)).limit(1).then(r => r[0] ?? null);
+    if (byDomain) return byDomain.id;
+  }
+  if (req.user?.id) {
+    const member = await rdb().select({ storeId: storeMembersTable.storeId }).from(storeMembersTable)
+      .where(and(eq(storeMembersTable.userId, req.user.id), eq(storeMembersTable.status, 'ACTIVE'))).limit(1).then(r => r[0] ?? null);
+    return member?.storeId ?? null;
+  }
+  return null;
+}
 import { SmsService } from './sms.service.js';
 import { KafkaClient } from '../../shared/kafka.js';
 import { TOPICS, OrderCreatedEvent, OrderStatusChangedEvent } from '../../shared/events.js';
@@ -28,10 +49,12 @@ export async function createOrder(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: 'Customer details and order items are required' });
     }
 
+    const storeId = await resolveStoreId(req as AuthRequest);
     const orderNumber = `RM-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const newOrder = await db.transaction(async (tx) => {
       const [order] = await tx.insert(ordersTable).values({
+        storeId: storeId ?? undefined,
         orderNumber,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
@@ -135,20 +158,60 @@ export async function getOrders(req: AuthRequest, res: Response) {
   }
 }
 
+export async function getOrder(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const order = await rdb().query.ordersTable.findFirst({
+      where: (t, { eq: _eq }) => _eq(t.id, id),
+      with: { items: true },
+    });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    return res.json({ success: true, data: order });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function deleteOrder(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    await db.update(ordersTable).set({ deletedAt: new Date() }).where(eq(ordersTable.id, id));
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function updateOrderTracking(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { trackingCode, courierTrackingCode } = req.body;
+    const code = String(courierTrackingCode || trackingCode || '');
+    const [updated] = await db.update(ordersTable)
+      .set({ courierTrackingCode: code })
+      .where(eq(ordersTable.id, id))
+      .returning();
+    return res.json({ success: true, data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
 export async function updateOrderStatus(req: AuthRequest, res: Response) {
   try {
     const id = String(req.params.id);
-    const { orderStatus, note } = req.body;
+    const { orderStatus, status, note } = req.body;
+    const newStatus = orderStatus || status;
 
     const [updated] = await db.update(ordersTable)
-      .set({ orderStatus: orderStatus as any })
+      .set({ orderStatus: newStatus as any })
       .where(eq(ordersTable.id, id))
       .returning();
 
     if (note) {
       await db.insert(orderStatusHistoriesTable).values({
         orderId: id,
-        status: String(orderStatus),
+        status: String(newStatus),
         note,
         changedBy: (req as any).user?.name || 'Admin',
       });
@@ -161,7 +224,7 @@ export async function updateOrderStatus(req: AuthRequest, res: Response) {
       orderNumber: updated.orderNumber,
       customerName: updated.customerName,
       customerPhone: updated.customerPhone,
-      previousStatus: (updated as any)._prevStatus || orderStatus,
+      previousStatus: (updated as any)._prevStatus || newStatus,
       newStatus: orderStatus,
       changedAt: new Date().toISOString(),
     };
@@ -256,6 +319,53 @@ export async function recordAbandonedLead(req: Request, res: Response) {
     }
 
     return res.json({ success: true, data: lead });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function getOrderCount(req: Request, res: Response) {
+  try {
+    const { status } = req.query;
+    const where: any[] = [isNull(ordersTable.deletedAt)];
+    if (status && status !== 'ALL') where.push(eq(ordersTable.orderStatus, status as any));
+    const [result] = await rdb().select({ count: count() }).from(ordersTable).where(and(...where));
+    return res.json({ success: true, data: { count: Number(result.count) } });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function getDashboardStats(req: Request, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req as AuthRequest);
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const orderWhere = storeId
+      ? and(isNull(ordersTable.deletedAt), eq(ordersTable.storeId, storeId))
+      : isNull(ordersTable.deletedAt);
+    const productWhere = storeId
+      ? and(isNull(productsTable.deletedAt), eq(productsTable.storeId, storeId))
+      : isNull(productsTable.deletedAt);
+
+    const [totalOrders, pendingOrders, monthOrders, revenue, totalProducts] = await Promise.all([
+      rdb().select({ count: count() }).from(ordersTable).where(orderWhere),
+      rdb().select({ count: count() }).from(ordersTable).where(and(orderWhere, eq(ordersTable.orderStatus, 'PENDING'))),
+      rdb().select({ count: count() }).from(ordersTable).where(and(orderWhere, gte(ordersTable.createdAt, firstDayOfMonth))),
+      rdb().select({ total: count() }).from(ordersTable).where(and(orderWhere, eq(ordersTable.paymentStatus, 'PAID'))),
+      rdb().select({ count: count() }).from(productsTable).where(productWhere),
+    ]);
+    return res.json({
+      success: true,
+      data: {
+        totalOrders: Number(totalOrders[0].count),
+        pendingOrders: Number(pendingOrders[0].count),
+        ordersThisMonth: Number(monthOrders[0].count),
+        paidOrders: Number(revenue[0].total),
+        totalProducts: Number(totalProducts[0].count),
+      },
+    });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });
   }

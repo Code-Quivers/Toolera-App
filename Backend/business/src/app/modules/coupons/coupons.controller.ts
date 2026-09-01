@@ -71,3 +71,33 @@ export async function createCoupon(req: AuthRequest, res: Response) {
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+
+export async function updateCoupon(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { code, discountType, discountValue, minOrderValue, expiresAt, active } = req.body;
+    const updates: any = {};
+    if (code !== undefined) updates.code = String(code).trim().toUpperCase();
+    if (discountType !== undefined) updates.discountType = discountType;
+    if (discountValue !== undefined) updates.discountValue = Number(discountValue);
+    if (minOrderValue !== undefined) updates.minOrderValue = Number(minOrderValue);
+    if (expiresAt !== undefined) updates.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    if (active !== undefined) updates.active = Boolean(active);
+
+    const [updated] = await db.update(couponsTable).set(updates).where(eq(couponsTable.id, id)).returning();
+    if (!updated) return res.status(404).json({ success: false, message: 'Coupon not found' });
+    return res.json({ success: true, data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function deleteCoupon(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    await db.update(couponsTable).set({ deletedAt: new Date() }).where(eq(couponsTable.id, id));
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}

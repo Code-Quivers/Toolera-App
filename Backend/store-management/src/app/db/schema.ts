@@ -225,24 +225,31 @@ export const pageRevisionsTable = pgTable('PageRevision', {
 
 export const themeSettingsTable = pgTable('ThemeSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
-  primary: text('primary').notNull().default('#0F172A'),
-  accent: text('accent').notNull().default('#0D9488'),
-  background: text('background').notNull().default('#FFFFFF'),
-  surface: text('surface').notNull().default('#F8FAFC'),
+  storeId: text('storeId').notNull().unique(),
+  homepageLayout: text('homepageLayout').notNull().default('ORIGINAL_RAIFAS_MART'),
+  primary: text('primary').notNull().default('#008B47'),
+  accent: text('accent').notNull().default('#F9A01B'),
+  primaryButtonText: text('primaryButtonText').notNull().default('#FFFFFF'),
+  accentButtonText: text('accentButtonText').notNull().default('#0F172A'),
+  background: text('background').notNull().default('#F8FAFC'),
+  surface: text('surface').notNull().default('#FFFFFF'),
   text: text('text').notNull().default('#0F172A'),
   muted: text('muted').notNull().default('#64748B'),
   border: text('border').notNull().default('#E2E8F0'),
-  headingFont: text('headingFont').notNull().default('Inter'),
-  bodyFont: text('bodyFont').notNull().default('Inter'),
+  headingFont: text('headingFont').notNull().default('Inter, sans-serif'),
+  bodyFont: text('bodyFont').notNull().default('Inter, sans-serif'),
   radius: text('radius').notNull().default('1rem'),
-  shadow: text('shadow').notNull().default('subtle'),
+  shadow: text('shadow').notNull().default('0 1px 3px 0 rgb(0 0 0 / 0.1)'),
   containerWidth: text('containerWidth').notNull().default('1280px'),
-  sectionSpacing: text('sectionSpacing').notNull().default('3rem'),
+  sectionSpacing: text('sectionSpacing').notNull().default('4rem'),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-});
+}, (t) => [
+  index('ThemeSettings_storeId_idx').on(t.storeId),
+]);
 
 export const headerSettingsTable = pgTable('HeaderSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+  storeId: text('storeId').notNull().unique(),
   logoUrl: text('logoUrl'),
   showSearch: boolean('showSearch').notNull().default(true),
   showWishlist: boolean('showWishlist').notNull().default(true),
@@ -252,22 +259,28 @@ export const headerSettingsTable = pgTable('HeaderSettings', {
   announcementActive: boolean('announcementActive').notNull().default(true),
   links: jsonb('links'),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-});
+}, (t) => [
+  index('HeaderSettings_storeId_idx').on(t.storeId),
+]);
 
 export const footerSettingsTable = pgTable('FooterSettings', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+  storeId: text('storeId').notNull().unique(),
   columns: jsonb('columns'),
   copyrightText: text('copyrightText').notNull().default("© 2026 Toolera. All rights reserved. Curated for Bangladesh."),
   socialLinks: jsonb('socialLinks'),
   paymentBadgesActive: boolean('paymentBadgesActive').notNull().default(true),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
-});
+}, (t) => [
+  index('FooterSettings_storeId_idx').on(t.storeId),
+]);
 
 export const menusTable = pgTable('Menu', {
   id: text('id').primaryKey().$defaultFn(() => randomUUID()),
   storeId: text('storeId'),
   name: text('name').notNull(),
   location: menuLocationEnum('location').notNull().default('HEADER'),
+  settings: jsonb('settings'),
   deletedAt: timestamp('deletedAt', { withTimezone: true }),
 });
 
@@ -277,6 +290,7 @@ export const menuItemsTable = pgTable('MenuItem', {
   parentId: text('parentId'),
   title: text('title').notNull(),
   url: text('url').notNull(),
+  type: text('type').default('CUSTOM'),
   position: integer('position').notNull().default(0),
   isExternal: boolean('isExternal').notNull().default(false),
 }, (t) => [

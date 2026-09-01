@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { eq, isNull, desc } from 'drizzle-orm';
+import { eq, isNull, desc, count } from 'drizzle-orm';
 import { db, rdb } from '../../db/index.js';
 import { reviewsTable, productsTable } from '../../db/schema.js';
 import { AuthRequest } from '../../middlewares/auth.middleware.js';
@@ -51,6 +51,17 @@ export async function submitReview(req: Request, res: Response) {
   }
 }
 
+export async function getReviewCount(req: Request, res: Response) {
+  try {
+    const { status } = req.query;
+    const where: any = status ? eq(reviewsTable.status, status as any) : isNull(reviewsTable.deletedAt);
+    const [result] = await rdb().select({ count: count() }).from(reviewsTable).where(where);
+    return res.json({ success: true, data: { count: Number(result.count) } });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
 export async function updateReviewStatus(req: AuthRequest, res: Response) {
   try {
     const id = String(req.params.id);
@@ -58,6 +69,32 @@ export async function updateReviewStatus(req: AuthRequest, res: Response) {
 
     const [updated] = await db.update(reviewsTable).set({ status: status as any }).where(eq(reviewsTable.id, id)).returning();
     return res.json({ success: true, message: `Review marked as ${status}`, data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function updateReview(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    const { status, comment, rating } = req.body;
+    const updates: any = {};
+    if (status !== undefined) updates.status = status;
+    if (comment !== undefined) updates.comment = comment;
+    if (rating !== undefined) updates.rating = Number(rating);
+
+    const [updated] = await db.update(reviewsTable).set(updates).where(eq(reviewsTable.id, id)).returning();
+    return res.json({ success: true, data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function deleteReview(req: AuthRequest, res: Response) {
+  try {
+    const id = String(req.params.id);
+    await db.update(reviewsTable).set({ deletedAt: new Date() }).where(eq(reviewsTable.id, id));
+    return res.json({ success: true });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });
   }

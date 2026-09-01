@@ -42,6 +42,7 @@ export default function AdminMenuPage() {
     removeItem,
     indentItem,
     makeSubItemOf,
+    saveMenus,
   } = useMenuStore();
 
   const currentMenu = getActiveMenu();
@@ -231,8 +232,13 @@ export default function AdminMenuPage() {
   };
 
   // Save Menu
-  const handleSaveMenu = () => {
-    showNotification(`Menu "${currentMenu.name}" settings and display locations saved!`);
+  const handleSaveMenu = async () => {
+    try {
+      await saveMenus();
+      showNotification(`Menu "${currentMenu?.name || 'menu'}" saved to store!`);
+    } catch {
+      showNotification("Failed to save menu. Please try again.");
+    }
   };
 
   // Filtered pages
@@ -242,6 +248,34 @@ export default function AdminMenuPage() {
     }
     return true;
   });
+
+  if (!currentMenu) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <FolderTree className="w-12 h-12 text-slate-300" />
+        <p className="text-slate-500 text-sm font-medium">No menus yet.</p>
+        <button
+          type="button"
+          onClick={() => setIsCreatingNewMenu(true)}
+          className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black"
+        >
+          Create Your First Menu
+        </button>
+        {isCreatingNewMenu && (
+          <form onSubmit={handleCreateNewMenuSubmit} className="flex gap-2 mt-2">
+            <input
+              value={newMenuName}
+              onChange={e => setNewMenuName(e.target.value)}
+              placeholder="Menu name"
+              className="border border-slate-300 rounded-lg px-3 py-2 text-xs"
+            />
+            <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold">Create</button>
+            <button type="button" onClick={() => setIsCreatingNewMenu(false)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs">Cancel</button>
+          </form>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 w-full pb-16">
@@ -891,7 +925,7 @@ export default function AdminMenuPage() {
                   <label className="flex items-center gap-2.5 cursor-pointer text-slate-700">
                     <input
                       type="checkbox"
-                      checked={currentMenu.autoAddPages}
+                      checked={!!currentMenu.autoAddPages}
                       onChange={(e) => updateActiveMenu({ autoAddPages: e.target.checked })}
                       className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
                     />
@@ -906,11 +940,9 @@ export default function AdminMenuPage() {
                   <label className="flex items-center gap-2.5 cursor-pointer text-slate-900 font-semibold">
                     <input
                       type="checkbox"
-                      checked={currentMenu.locations.header}
+                      checked={!!currentMenu.locations?.header}
                       onChange={(e) =>
-                        updateActiveMenu({
-                          locations: { ...currentMenu.locations, header: e.target.checked },
-                        })
+                        updateActiveMenu({ locations: { ...currentMenu.locations, header: e.target.checked } })
                       }
                       className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
                     />
@@ -921,11 +953,9 @@ export default function AdminMenuPage() {
                   <label className="flex items-center gap-2.5 cursor-pointer text-emerald-900 font-semibold bg-emerald-50/60 p-2 rounded-xl border border-emerald-200">
                     <input
                       type="checkbox"
-                      checked={currentMenu.locations.categories}
+                      checked={!!currentMenu.locations?.categories}
                       onChange={(e) =>
-                        updateActiveMenu({
-                          locations: { ...currentMenu.locations, categories: e.target.checked },
-                        })
+                        updateActiveMenu({ locations: { ...currentMenu.locations, categories: e.target.checked } })
                       }
                       className="w-4 h-4 rounded text-emerald-600 border-emerald-400 focus:ring-emerald-500"
                     />
@@ -941,18 +971,16 @@ export default function AdminMenuPage() {
                   <label className="flex items-center gap-2.5 cursor-pointer text-slate-700">
                     <input
                       type="checkbox"
-                      checked={currentMenu.locations.footer}
+                      checked={!!currentMenu.locations?.footer}
                       onChange={(e) =>
-                        updateActiveMenu({
-                          locations: { ...currentMenu.locations, footer: e.target.checked },
-                        })
+                        updateActiveMenu({ locations: { ...currentMenu.locations, footer: e.target.checked } })
                       }
                       className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
                     />
                     <span>
                       Footer Links{" "}
                       <span className="text-slate-400 text-[11px]">
-                        (Currently set to: {menus.find((m) => m.locations.footer)?.name || "Other Menu"})
+                        (Currently set to: {menus.find((m) => m.locations?.footer)?.name || "Other Menu"})
                       </span>
                     </span>
                   </label>
@@ -961,11 +989,9 @@ export default function AdminMenuPage() {
                   <label className="flex items-center gap-2.5 cursor-pointer text-slate-700">
                     <input
                       type="checkbox"
-                      checked={currentMenu.locations.topBar}
+                      checked={!!currentMenu.locations?.topBar}
                       onChange={(e) =>
-                        updateActiveMenu({
-                          locations: { ...currentMenu.locations, topBar: e.target.checked },
-                        })
+                        updateActiveMenu({ locations: { ...currentMenu.locations, topBar: e.target.checked } })
                       }
                       className="w-4 h-4 rounded text-emerald-600 border-slate-300 focus:ring-emerald-500"
                     />

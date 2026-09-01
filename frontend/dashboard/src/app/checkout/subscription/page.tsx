@@ -15,7 +15,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useTenantStore } from "@/store/useTenantStore";
-import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
 
 function SubscriptionCheckoutContent() {
@@ -25,19 +24,26 @@ function SubscriptionCheckoutContent() {
   const cycle = (searchParams.get("cycle") || "MONTHLY") as "MONTHLY" | "YEARLY";
 
   const { activeStore, setPaymentPending, markSubscriptionPaid } = useTenantStore();
-  const { plans } = useSubscriptionStore();
   const { adminUser } = useAdminAuthStore();
+  const [planData, setPlanData] = useState<{ name: string; monthly: number; yearly: number } | null>(null);
+
+  useEffect(() => {
+    const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    fetch(`${API}/api/v1/subscriptions/plans`)
+      .then(r => r.json())
+      .then(json => {
+        const plan = (json?.data ?? []).find((p: any) => p.slug === planSlug);
+        if (plan) setPlanData({ name: plan.name, monthly: plan.priceMonthly, yearly: plan.priceYearly });
+      })
+      .catch(() => {});
+  }, [planSlug]);
 
   const [paymentMethod, setPaymentMethod] = useState<"BKASH" | "NAGAD" | "CARD">("BKASH");
   const [phoneNumber, setPhoneNumber] = useState("017");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const planInfo = {
-    starter: { name: "Starter", monthly: 499, yearly: 4990 },
-    growth: { name: "Growth (Most Popular)", monthly: 999, yearly: 9990 },
-    pro: { name: "Pro Enterprise", monthly: 1999, yearly: 19990 },
-  }[planSlug] || { name: "Growth", monthly: 999, yearly: 9990 };
+  const planInfo = planData ?? { name: "Pro", monthly: 999, yearly: 9990 };
 
   const totalAmount = cycle === "MONTHLY" ? planInfo.monthly : planInfo.yearly;
 
@@ -48,15 +54,15 @@ function SubscriptionCheckoutContent() {
 
     try {
       // Record payment activation in backend API or client store
-      const res = await fetch("http://localhost:5000/api/v1/subscriptions/activate", {
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API}/api/v1/subscriptions/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          storeId: activeStore?.id || "cmtctx01l0006bgt8bnip8iwy",
+          storeId: activeStore?.id,
           planSlug,
           billingCycle: cycle,
           paymentMethod,
-          amount: totalAmount,
         }),
       }).catch(() => null);
 

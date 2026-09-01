@@ -13,6 +13,7 @@ import {
   Compass,
 } from "lucide-react";
 import { useProductStore } from "@/store/useProductStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
 import { useCartStore } from "@/store/useCartStore";
 
 // ==========================================
@@ -88,11 +89,17 @@ export function GroceryDealOfTheDay() {
             className="bg-white rounded-2xl border border-slate-200/80 p-3.5 hover:shadow-lg transition flex flex-col justify-between space-y-2"
           >
             <div className="space-y-2">
-              <img
-                src={product.images[0]}
-                alt={product.title}
-                className="aspect-square w-full object-cover rounded-xl bg-slate-50"
-              />
+              {product.images?.[0] ? (
+                <img
+                  src={product.images[0]}
+                  alt={product.title || product.name}
+                  className="aspect-square w-full object-cover rounded-xl bg-slate-50"
+                />
+              ) : (
+                <div className="aspect-square w-full rounded-xl bg-slate-100 flex items-center justify-center">
+                  <ShoppingBag className="w-10 h-10 text-slate-200" />
+                </div>
+              )}
               <div className="font-bold text-xs text-slate-900 line-clamp-2">{product.title}</div>
               <div className="font-black text-xs text-slate-950">৳{product.price.toLocaleString()}</div>
             </div>
@@ -281,33 +288,38 @@ export function FurnitureBrandLogos() {
 }
 
 export function FurnitureRoomCategories() {
-  const rooms = [
-    { title: "Living Room", img: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80", count: "24 items" },
-    { title: "Dining & Kitchen", img: "https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=600&q=80", count: "16 items" },
-    { title: "Workspace & Office", img: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=80", count: "18 items" },
-  ];
+  const { categories } = useCategoryStore();
+
+  const displayed = categories.slice(0, 3);
+  if (displayed.length === 0) return null;
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-4">
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-        <h2 className="text-xl font-black text-slate-950">Shop by Room</h2>
+        <h2 className="text-xl font-black text-slate-950">Shop by Category</h2>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {rooms.map((room) => (
+        {displayed.map((cat) => (
           <Link
-            key={room.title}
-            href="/shop"
+            key={cat.id}
+            href={`/category/${cat.slug}`}
             className="group relative rounded-3xl overflow-hidden aspect-4/3 flex items-end p-6 bg-slate-900 text-white shadow-md"
           >
-            <img
-              src={room.img}
-              alt={room.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:scale-105 transition duration-500"
-            />
+            {cat.imageUrl ? (
+              <img
+                src={cat.imageUrl}
+                alt={cat.name}
+                className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:scale-105 transition duration-500"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-linear-to-br from-slate-700 to-slate-900" />
+            )}
             <div className="relative z-10">
-              <h3 className="text-lg font-bold">{room.title}</h3>
-              <p className="text-xs text-slate-300">{room.count}</p>
+              <h3 className="text-lg font-bold">{cat.name}</h3>
+              {cat.productCount != null && (
+                <p className="text-xs text-slate-300">{cat.productCount} items</p>
+              )}
             </div>
           </Link>
         ))}
@@ -389,11 +401,17 @@ export function FashionGenderTabs() {
           .map((p) => (
           <div key={p.id} className="group flex flex-col justify-between space-y-3">
             <div className="relative aspect-3/4 rounded-2xl overflow-hidden bg-slate-100">
-              <img
-                src={p.images[0]}
-                alt={p.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-              />
+              {p.images?.[0] ? (
+                <img
+                  src={p.images[0]}
+                  alt={p.title || p.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ShoppingBag className="w-12 h-12 text-slate-200" />
+                </div>
+              )}
               <button
                 onClick={() => addToCart(p)}
                 className="absolute bottom-3 left-3 right-3 py-2 bg-slate-950/90 backdrop-blur-xs hover:bg-rose-600 text-white rounded-xl text-xs font-bold opacity-0 group-hover:opacity-100 transition duration-200"

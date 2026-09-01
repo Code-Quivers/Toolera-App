@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { storeController } from './store.controller.js';
-import { requireAuth } from '../../middlewares/auth.middleware.js';
+import { requireAuth, optionalAuth } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
@@ -12,9 +12,10 @@ router.get('/me', requireAuth, storeController.getMyStore);
 
 // Store routes
 router.get('/', storeController.listStores);
-router.post('/', storeController.createStore);
+router.post('/', optionalAuth, storeController.createStore);
 router.get('/:id', storeController.getStore);
 router.put('/:id', storeController.updateStore);
+router.patch('/:id', storeController.updateStore);
 router.delete('/:id', storeController.deleteStore);
 
 // Store members

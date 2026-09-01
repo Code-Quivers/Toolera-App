@@ -10,8 +10,16 @@ export interface MenuItemData {
 }
 
 export const DEFAULT_MENUS = [
-  { id: "main", label: "Main Menu", location: "header", items: [] as any[] },
+  { id: "main", label: "Main Menu", location: "HEADER", items: [] as any[] },
 ];
+
+// Maps UI location keys to the string a caller passes to getMenuByLocation
+const LOCATION_KEY_MAP: Record<string, string> = {
+  header: "HEADER",
+  categories: "CATEGORIES",
+  footer: "FOOTER",
+  topBar: "TOP_BAR",
+};
 
 export function useMenuStore() {
   const [menus, setMenus] = useState<any[]>([]);
@@ -23,7 +31,18 @@ export function useMenuStore() {
   }, []);
 
   const getMenuByLocation = useCallback(
-    (location: string) => menus.find((m: any) => m.location === location) ?? null,
+    (location: string) => {
+      const loc = location.toUpperCase();
+      return menus.find((m: any) => {
+        // Check primary location field
+        if ((m.location || '').toUpperCase() === loc) return true;
+        // Check settings.locations object (multi-location assignment)
+        const locs: Record<string, boolean> = (m.settings as any)?.locations ?? {};
+        return Object.entries(LOCATION_KEY_MAP).some(
+          ([key, val]) => val === loc && locs[key]
+        );
+      }) ?? null;
+    },
     [menus]
   );
 

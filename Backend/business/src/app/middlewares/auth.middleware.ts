@@ -29,8 +29,9 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
-    if (!decoded || (decoded.role !== 'ADMIN' && decoded.role !== 'MANAGER')) {
-      res.status(403).json({ success: false, message: 'Access forbidden. Administrator privileges required.' });
+    const allowedRoles = ['ADMIN', 'MANAGER', 'OWNER', 'EDITOR', 'STAFF'];
+    if (!decoded || !allowedRoles.includes(decoded.role)) {
+      res.status(403).json({ success: false, message: 'Access forbidden.' });
       return;
     }
 
@@ -38,6 +39,22 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
     next();
   } catch (err) {
     res.status(401).json({ success: false, message: 'Invalid or expired session token. Please sign in again.' });
+  }
+}
+
+export function requireAuth(req: AuthRequest, res: Response, next: NextFunction): void {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ success: false, message: 'Authentication required.' });
+      return;
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    req.user = decoded;
+    next();
+  } catch {
+    res.status(401).json({ success: false, message: 'Invalid or expired token.' });
   }
 }
 

@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useFooterStore, FooterLinkItem } from "@/store/useFooterStore";
 import { ImageUploader } from "@/components/admin/ImageUploader";
-import { syncToServer } from "@/lib/serverSync";
 import Link from "next/link";
 import {
   Globe,
@@ -71,10 +70,14 @@ export default function AdminFooterPage() {
     setTimeout(() => setNotification(null), 3500);
   };
 
-  const handleSave = (e?: React.FormEvent) => {
+  const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    syncToServer("footer", settings);
-    showNotification("Footer navigation & settings saved and synced successfully!");
+    try {
+      await updateSettings(settings);
+      showNotification("Footer settings saved to store!");
+    } catch {
+      showNotification("Failed to save. Please try again.");
+    }
   };
 
   if (!settings) return (

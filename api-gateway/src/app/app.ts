@@ -22,6 +22,8 @@ import couponRoutes from './modules/coupon/coupon.route';
 import paymentRoutes from './modules/payment/payment.route';
 import courierRoutes from './modules/courier/courier.route';
 import uploadRoutes from './modules/upload/upload.route';
+import customerRoutes from './modules/customers/customers.route';
+import attributeRoutes from './modules/attributes/attributes.route';
 
 const app = express();
 
@@ -66,6 +68,8 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/courier', courierRoutes);
+app.use('/api/v1/customers', customerRoutes);
+app.use('/api/v1/attributes', attributeRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 
 // 404

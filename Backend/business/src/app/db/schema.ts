@@ -907,6 +907,35 @@ export const couponsRelations = relations(couponsTable, ({ one }) => ({
   store: one(storesTable, { fields: [couponsTable.storeId], references: [storesTable.id] }),
 }));
 
+// ── Expenses ───────────────────────────────────────────────────────────────
+
+export const expensesTable = pgTable('Expense', {
+  id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+  storeId: text('storeId').notNull(),
+  title: text('title').notNull(),
+  amount: doublePrecision('amount').notNull().default(0),
+  category: text('category'),
+  note: text('note'),
+  date: text('date'),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
+}, (t) => [index('Expense_storeId_idx').on(t.storeId)]);
+
+// ── Stock Logs ─────────────────────────────────────────────────────────────
+
+export const stockLogsTable = pgTable('StockLog', {
+  id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+  storeId: text('storeId').notNull(),
+  productId: text('productId'),
+  productTitle: text('productTitle').notNull(),
+  sku: text('sku'),
+  type: text('type').notNull().default('ADJUSTMENT'),
+  qty: integer('qty').notNull().default(0),
+  note: text('note'),
+  costLoss: doublePrecision('costLoss'),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('StockLog_storeId_idx').on(t.storeId)]);
+
 export const abandonedLeadsRelations = relations(abandonedLeadsTable, ({ one }) => ({
   store: one(storesTable, { fields: [abandonedLeadsTable.storeId], references: [storesTable.id] }),
 }));

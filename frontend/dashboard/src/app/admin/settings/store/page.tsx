@@ -157,14 +157,15 @@ export default function StoreSettingsPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link
-            href="/"
+          <a
+            href={process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000"}
             target="_blank"
+            rel="noopener noreferrer"
             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span>View Storefront</span>
-          </Link>
+          </a>
           <Link
             href="/admin/website/theme"
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"

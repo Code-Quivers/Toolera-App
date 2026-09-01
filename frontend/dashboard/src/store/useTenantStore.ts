@@ -51,7 +51,7 @@ export function useTenantStore() {
         setActiveStoreState(store);
         try { localStorage.setItem(CACHE_KEY, JSON.stringify(store)); } catch {}
         const sub = store.subscription;
-        const pending = !sub || sub.status === "PENDING" || sub.status === "UNPAID" || sub.status === "CANCELLED" || sub.status === "EXPIRED";
+        const pending = !!sub && (sub.status === "PENDING" || sub.status === "UNPAID" || sub.status === "CANCELLED" || sub.status === "EXPIRED");
         setIsPaymentPendingState(pending);
       }
     } catch {} finally { setIsLoading(false); }
@@ -93,6 +93,7 @@ export function useTenantStore() {
       if (res.ok && json?.data) {
         setStores(prev => [...prev, json.data]);
         setActiveStoreState(json.data);
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(json.data)); } catch {}
         return { success: true, store: json.data };
       }
       return { success: false, message: json.message };

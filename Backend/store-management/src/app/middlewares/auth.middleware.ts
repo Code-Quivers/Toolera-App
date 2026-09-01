@@ -29,7 +29,8 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
-    if (!decoded || (decoded.role !== 'ADMIN' && decoded.role !== 'MANAGER')) {
+    const allowedRoles = ['ADMIN', 'MANAGER', 'OWNER'];
+    if (!decoded || !allowedRoles.includes(decoded.role)) {
       res.status(403).json({ success: false, message: 'Access forbidden. Administrator privileges required.' });
       return;
     }

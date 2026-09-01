@@ -289,14 +289,15 @@ export default function StoreManagementPage() {
                     <Globe className="w-4 h-4" />
                   </button>
 
-                  <Link
-                    href="/"
+                  <a
+                    href={process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000"}
                     target="_blank"
+                    rel="noopener noreferrer"
                     title="Preview Storefront"
                     className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 transition"
                   >
                     <ExternalLink className="w-4 h-4" />
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>

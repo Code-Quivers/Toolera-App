@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { FileText, Clock, ShieldCheck, Phone } from "lucide-react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const STORE_SLUG = process.env.NEXT_PUBLIC_STORE_SLUG || "";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,7 +12,8 @@ interface Props {
 
 async function fetchPage(slug: string) {
   try {
-    const res = await fetch(`${API}/api/v1/cms/pages/${slug}`, { next: { revalidate: 300 } });
+    const qs = STORE_SLUG ? `?slug=${encodeURIComponent(STORE_SLUG)}` : "";
+    const res = await fetch(`${API}/api/v1/cms/pages/${encodeURIComponent(slug)}${qs}`, { next: { revalidate: 300 } });
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data ?? json ?? null;

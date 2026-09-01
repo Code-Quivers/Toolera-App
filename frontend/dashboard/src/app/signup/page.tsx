@@ -19,9 +19,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAdminAuthStore } from "@/store/useAdminAuthStore";
-import { setAdminToken, setAdminUser } from "@/lib/auth";
 
-function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "SIGNIN" }) {
+export function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "SIGNIN" }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,51 +102,16 @@ function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "S
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!fullName.trim()) {
-      setErrorMsg("Please enter your full name.");
-      return;
-    }
-    if (!signupEmail.trim() || !signupEmail.includes("@")) {
-      setErrorMsg("Please enter a valid email address.");
-      return;
-    }
-    if (signupPassword.length < 6) {
-      setErrorMsg("Password must be at least 6 characters long.");
-      return;
-    }
-    if (signupPassword !== confirmPassword) {
-      setErrorMsg("Passwords do not match. Please verify.");
-      return;
-    }
-    if (!termsAccepted) {
-      setErrorMsg("Please accept the terms of service to continue.");
-      return;
-    }
+    if (!fullName.trim()) { setErrorMsg("Please enter your full name."); return; }
+    if (!signupEmail.trim() || !signupEmail.includes("@")) { setErrorMsg("Please enter a valid email address."); return; }
+    if (signupPassword.length < 6) { setErrorMsg("Password must be at least 6 characters long."); return; }
+    if (signupPassword !== confirmPassword) { setErrorMsg("Passwords do not match. Please verify."); return; }
+    if (!termsAccepted) { setErrorMsg("Please accept the terms of service to continue."); return; }
 
     setIsLoading(true);
-
     try {
-      const res = await fetch("http://localhost:5000/api/v1/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: fullName.trim(),
-          email: signupEmail.trim().toLowerCase(),
-          password: signupPassword.trim(),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErrorMsg(data.message || "Failed to create account. Please try again.");
-        return;
-      }
-
-      if (data.token) setAdminToken(data.token, true);
-      if (data.user) setAdminUser(data.user);
-
-      registerMerchant(fullName.trim(), signupEmail.trim().toLowerCase(), signupPassword.trim());
+      const result = await registerMerchant(fullName.trim(), signupEmail.trim().toLowerCase(), signupPassword.trim());
+      if (!result.success) { setErrorMsg(result.message || "Failed to create account."); return; }
       router.push("/onboarding/store");
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to create account. Please try again.");
@@ -161,29 +125,12 @@ function AuthComponent({ initialMode = "SIGNUP" }: { initialMode?: "SIGNUP" | "S
     e.preventDefault();
     setErrorMsg(null);
     setIsLoading(true);
-
     try {
-      const res = await fetch("http://localhost:5000/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: signinEmail.trim().toLowerCase(),
-          password: signinPassword,
-        }),
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.token) {
-          localStorage.setItem("rm_token", data.token);
-        }
-      }
-
-      const clientResult = login(signinEmail, signinPassword, rememberMe);
-      if (clientResult.success) {
+      const result = await login(signinEmail.trim().toLowerCase(), signinPassword, rememberMe);
+      if (result.success) {
         router.replace(redirectUrl);
       } else {
-        setErrorMsg(clientResult.message);
+        setErrorMsg(result.message || "Login failed. Please verify credentials.");
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Login failed. Please verify credentials.");

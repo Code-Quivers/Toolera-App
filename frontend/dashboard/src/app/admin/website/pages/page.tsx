@@ -17,6 +17,16 @@ import {
   Check,
 } from "lucide-react";
 
+const STOREFRONT_URL = (process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000").replace(/\/$/, "");
+
+function getLiveUrl(page: any): string {
+  // Homepage pages use the storefront root
+  if (page.isHomepage || page.slug?.startsWith("homepage-")) return STOREFRONT_URL + "/";
+  // Strip any leading /pages/ that may already be in the slug
+  const cleanSlug = (page.slug || "").replace(/^\/pages\//, "");
+  return `${STOREFRONT_URL}/pages/${cleanSlug}`;
+}
+
 export default function AdminPagesPage() {
   const { pages, addPage, updatePage, deletePage } = usePageStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -232,14 +242,15 @@ export default function AdminPagesPage() {
                       <Edit2 className="w-3 h-3" />
                       <span>Edit</span>
                     </button>
-                    <Link
-                      href={`/pages/${page.slug}`}
+                    <a
+                      href={getLiveUrl(page)}
                       target="_blank"
+                      rel="noopener noreferrer"
                       className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 border border-slate-200 transition"
-                      title="View Live Page"
+                      title="View Live Page on Storefront"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                    </Link>
+                    </a>
                     <button
                       onClick={() => handleDelete(page.id, page.title)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"

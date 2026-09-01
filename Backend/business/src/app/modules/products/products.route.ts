@@ -8,4 +8,5 @@ productsRouter.get('/:slug', getProductBySlug);
 productsRouter.post('/', requireAdmin, createProduct);
 productsRouter.put('/bulk', requireAdmin, bulkUpdateProducts);
 productsRouter.put('/:id', requireAdmin, updateProduct);
+productsRouter.patch('/:id', requireAdmin, updateProduct);
 productsRouter.delete('/:id', requireAdmin, deleteProduct);

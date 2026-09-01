@@ -12,3 +12,11 @@ uploadRouter.post('/multiple', requireAdmin, upload.array('images', 10), uploadM
 
 // DELETE /api/v1/upload        — delete by key
 uploadRouter.delete('/', requireAdmin, deleteImage);
+
+// Media library stubs (product images are tracked in productImagesTable)
+uploadRouter.get('/media', requireAdmin, (_req, res) => {
+  res.json({ success: true, data: [] });
+});
+uploadRouter.delete('/media/:id', requireAdmin, (_req, res) => {
+  res.json({ success: true });
+});

@@ -57,8 +57,8 @@ export function Header() {
   const cartCount = mounted ? getItemCount() : 0;
   const wishlistCount = mounted ? wishlistItems.length : 0;
 
-  const getMenuIcon = (label: string) => {
-    const l = label.toLowerCase();
+  const getMenuIcon = (label: string | undefined) => {
+    const l = (label || "").toLowerCase();
     if (l.includes("trending") || l.includes("viral"))
       return <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0" />;
     if (l.includes("new") || l.includes("arrival"))
@@ -121,7 +121,7 @@ export function Header() {
         const subItems = menuItems.filter((sub) => sub.parentId === item.id);
         const hasSubmenu = subItems.length > 0;
         const isActive = pathname === item.url;
-        const Icon = getMenuIcon(item.label);
+        const Icon = getMenuIcon(item.title || item.label);
 
         if (hasSubmenu) {
           return (
@@ -141,7 +141,7 @@ export function Header() {
                 }`}
               >
                 {Icon}
-                <span suppressHydrationWarning>{item.label}</span>
+                <span suppressHydrationWarning>{item.title || item.label}</span>
                 <ChevronDown className="w-3 h-3 text-slate-400 group-hover:rotate-180 transition transform duration-200" />
               </Link>
 
@@ -183,7 +183,7 @@ export function Header() {
             }`}
           >
             {Icon}
-            <span suppressHydrationWarning>{item.label}</span>
+            <span suppressHydrationWarning>{item.title || item.label}</span>
           </Link>
         );
       })}
@@ -929,7 +929,7 @@ export function Header() {
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition"
                       >
-                        <span>{item.label}</span>
+                        <span>{item.title || item.label}</span>
                         <ChevronRight className="w-4 h-4 text-slate-400" />
                       </Link>
                       {subItems.length > 0 && (

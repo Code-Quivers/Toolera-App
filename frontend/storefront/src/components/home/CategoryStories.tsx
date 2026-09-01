@@ -97,7 +97,7 @@ export function CategoryStories() {
                     products.filter(
                       (p) =>
                         (p.categorySlug && p.categorySlug.toLowerCase() === cat.slug.toLowerCase()) ||
-                        (p.category && p.category.toLowerCase() === cat.name.toLowerCase())
+                        (p.category && (p.category as string).toLowerCase() === cat.name.toLowerCase())
                     ).length
                   }{" "}
                   products

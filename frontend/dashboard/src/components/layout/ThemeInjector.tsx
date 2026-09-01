@@ -3,6 +3,31 @@
 import React, { useEffect } from "react";
 import { useCmsStore } from "@/lib/cms/useCmsStore";
 
+// Google Font name map (CSS value → GF family name for URL)
+const GF_MAP: Record<string, string> = {
+  "Inter, sans-serif": "Inter",
+  "'Plus Jakarta Sans', sans-serif": "Plus+Jakarta+Sans",
+  "'Poppins', sans-serif": "Poppins",
+  "'DM Sans', sans-serif": "DM+Sans",
+  "'Outfit', sans-serif": "Outfit",
+  "'Nunito', sans-serif": "Nunito",
+  "'Montserrat', sans-serif": "Montserrat",
+  "'Raleway', sans-serif": "Raleway",
+  "'Urbanist', sans-serif": "Urbanist",
+  "'Space Grotesk', sans-serif": "Space+Grotesk",
+  "'Sora', sans-serif": "Sora",
+  "'Figtree', sans-serif": "Figtree",
+  "'Josefin Sans', sans-serif": "Josefin+Sans",
+  "'Lato', sans-serif": "Lato",
+  "'Open Sans', sans-serif": "Open+Sans",
+  "'Roboto', sans-serif": "Roboto",
+  "'Hind Siliguri', sans-serif": "Hind+Siliguri",
+  "'Noto Sans Bengali', sans-serif": "Noto+Sans+Bengali",
+  "'Baloo Da 2', sans-serif": "Baloo+Da+2",
+  "'Tiro Bangla', serif": "Tiro+Bangla",
+  "'Anek Bangla', sans-serif": "Anek+Bangla",
+};
+
 /**
  * Dynamically applies Theme Customizer settings (Primary Green, Accent Amber/Gold,
  * Button Text Color, Border Radius Token, Font Family) to the entire website in real time.
@@ -12,6 +37,19 @@ export function ThemeInjector() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Load Google Font if needed
+    const gfName = GF_MAP[theme.bodyFont];
+    if (gfName) {
+      const linkId = `gf-${gfName}`;
+      if (!document.getElementById(linkId)) {
+        const link = document.createElement("link");
+        link.id = linkId;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${gfName}:wght@400;500;600;700;800;900&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
 
     const root = document.documentElement;
 

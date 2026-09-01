@@ -1,5 +1,5 @@
 "use client";
-// CMS store — replaced Zustand with module-level singleton + React hook listener pattern
+// CMS store — module-level singleton + React hook listener pattern
 import { useEffect, useState } from "react";
 import { triggerSoftAction } from "@/store/useSoftLoadingStore";
 import { DEFAULT_HOMEPAGE_SECTIONS, THEME_PRESET_SECTIONS } from "./themePresets";
@@ -12,8 +12,24 @@ import type {
   HomepageThemeLayout,
 } from "./types";
 import type { HeroBannerSlide } from "@/types/banners";
+import { getAuthHeader } from "@/lib/auth";
 
 export { DEFAULT_HOMEPAGE_SECTIONS };
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+// Active seller store slug — set once from the admin layout when the store is known.
+// Included as ?slug= in all CMS API calls so the backend always targets the correct store
+// rather than relying solely on auth-token resolution (which fails for multi-store setups).
+let _storeSlug = "";
+export function initCmsStore(slug: string) {
+  if (slug && slug !== _storeSlug) {
+    _storeSlug = slug;
+    // Re-sync from DB whenever the store context changes
+    set({ dbSynced: false });
+  }
+}
+function cmsQs() { return _storeSlug ? `?slug=${encodeURIComponent(_storeSlug)}` : ""; }
 
 export const DEFAULT_THEME: ThemeSettingsState = {
   homepageLayout: "ORIGINAL_RAIFAS_MART",
@@ -71,6 +87,7 @@ interface CmsState {
   theme: ThemeSettingsState;
   hasUnsavedChanges: boolean;
   activeDevice: "desktop" | "tablet" | "mobile";
+  dbSynced: boolean;
 }
 
 const cms = loadCms();
@@ -85,19 +102,20 @@ let state: CmsState = {
   theme: loadTheme(),
   hasUnsavedChanges: false,
   activeDevice: "desktop",
+  dbSynced: false,
 };
 
 const listeners = new Set<() => void>();
 function notify() { listeners.forEach(l => l()); }
 
-function saveCms() {
+function saveCmsLocal() {
   if (typeof window === "undefined") return;
   localStorage.setItem(CMS_KEY, JSON.stringify({
     state: { draftSections: state.draftSections, publishedSections: state.publishedSections },
   }));
 }
 
-function saveTheme() {
+function saveThemeLocal() {
   if (typeof window === "undefined") return;
   localStorage.setItem(THEME_KEY, JSON.stringify(state.theme));
 }
@@ -107,11 +125,70 @@ function set(partial: Partial<CmsState>) {
   notify();
 }
 
+// ── API helpers ───────────────────────────────────────────────────────────────
+
+async function saveThemeToDb(theme: ThemeSettingsState) {
+  try {
+    const authHeader = getAuthHeader() as Record<string, string>;
+    if (!authHeader["Authorization"]) return;
+    await fetch(`${API}/api/v1/cms/theme${cmsQs()}`, {
+      method: "PUT",
+      headers: { ...authHeader, "Content-Type": "application/json" },
+      body: JSON.stringify(theme),
+    });
+  } catch {}
+}
+
+async function saveSectionsToDb(sections: CMSSectionItem[], isPublished = true) {
+  try {
+    const authHeader = getAuthHeader() as Record<string, string>;
+    if (!authHeader["Authorization"]) return;
+    await fetch(`${API}/api/v1/cms/sections${cmsQs()}`, {
+      method: "POST",
+      headers: { ...authHeader, "Content-Type": "application/json" },
+      body: JSON.stringify({ sections, isPublished }),
+    });
+  } catch {}
+}
+
+// Load theme + published sections from DB on first mount
+export async function loadFromDb() {
+  try {
+    const authHeader = getAuthHeader() as Record<string, string>;
+    if (!authHeader["Authorization"]) return;
+    const headers = authHeader;
+    const res = await fetch(`${API}/api/v1/cms${cmsQs()}`, { headers });
+    if (!res.ok) return;
+    const json = await res.json();
+    const data = json?.data;
+    if (!data) return;
+
+    const dbTheme: Partial<ThemeSettingsState> = data.theme ?? {};
+    const mergedTheme = { ...DEFAULT_THEME, ...dbTheme };
+    const publishedSections: CMSSectionItem[] = data.publishedSections?.length > 0
+      ? data.publishedSections
+      : state.publishedSections;
+
+    // Save to localStorage cache
+    localStorage.setItem(THEME_KEY, JSON.stringify(mergedTheme));
+    localStorage.setItem(CMS_KEY, JSON.stringify({ state: { draftSections: publishedSections, publishedSections } }));
+
+    const hero = publishedSections.find((s: CMSSectionItem) => s.type === "hero-slider");
+    set({
+      theme: mergedTheme,
+      publishedSections,
+      draftSections: publishedSections,
+      globalHeroSlides: hero?.settings?.slides ?? state.globalHeroSlides,
+      dbSynced: true,
+    });
+  } catch {}
+}
+
 // ── Actions ───────────────────────────────────────────────────────────────────
 
 function setDraftSections(sections: CMSSectionItem[]) {
   set({ draftSections: sections, hasUnsavedChanges: true });
-  saveCms();
+  saveCmsLocal();
 }
 
 function reorderSections(newSections: CMSSectionItem[]) { setDraftSections(newSections); }
@@ -174,39 +251,47 @@ function saveDraft(author = "Admin", notes?: string) {
     createdAt: new Date().toISOString(),
   };
   set({ revisions: [rev, ...state.revisions], hasUnsavedChanges: false });
-  saveCms();
+  saveCmsLocal();
+  saveSectionsToDb(state.draftSections, false);
 }
 
 function publishDraft(author = "Admin", notes?: string) {
   triggerSoftAction("Publishing homepage...", 800);
   const published = state.draftSections;
   set({ publishedSections: published, hasUnsavedChanges: false });
-  saveCms();
+  saveCmsLocal();
   addAuditLog("PUBLISH", "homepage", "homepage", { sectionsCount: published.length, author, notes });
+  saveSectionsToDb(published, true);
 }
 
 function rollbackToRevision(revisionId: string, author = "Admin") {
   const rev = state.revisions.find(r => r.id === revisionId);
   if (!rev) return;
   set({ draftSections: rev.sectionsSnapshot, publishedSections: rev.sectionsSnapshot, hasUnsavedChanges: false });
-  saveCms();
+  saveCmsLocal();
   addAuditLog("ROLLBACK", "homepage", revisionId, { author });
 }
 
 function updateTheme(newTheme: Partial<ThemeSettingsState>, author = "Admin") {
-  set({ theme: { ...state.theme, ...newTheme }, hasUnsavedChanges: true });
-  saveTheme();
+  const merged = { ...state.theme, ...newTheme };
+  set({ theme: merged, hasUnsavedChanges: true });
+  saveThemeLocal();
+  saveThemeToDb(merged);
 }
 
 function switchThemeLayout(layoutId: HomepageThemeLayout, author = "Admin") {
   const presetSections = THEME_PRESET_SECTIONS[layoutId] || DEFAULT_HOMEPAGE_SECTIONS;
+  const merged = { ...state.theme, homepageLayout: layoutId };
   set({
-    theme: { ...state.theme, homepageLayout: layoutId },
+    theme: merged,
     draftSections: presetSections,
-    hasUnsavedChanges: true,
+    publishedSections: presetSections,
+    hasUnsavedChanges: false,
   });
-  saveCms();
-  saveTheme();
+  saveCmsLocal();
+  saveThemeLocal();
+  saveThemeToDb(merged);
+  saveSectionsToDb(presetSections, true);
 }
 
 function setActiveDevice(device: "desktop" | "tablet" | "mobile") {
@@ -234,6 +319,12 @@ export function useCmsStore() {
   useEffect(() => {
     const handler = () => setSnap({ ...state });
     listeners.add(handler);
+
+    // Load from DB on first mount (only once per session)
+    if (!state.dbSynced) {
+      loadFromDb();
+    }
+
     return () => { listeners.delete(handler); };
   }, []);
 
@@ -257,6 +348,6 @@ export function useCmsStore() {
   };
 }
 
-// Legacy static access (was useCmsStore.setState / useCmsStore.getState)
-useCmsStore.setState = (partial: Partial<CmsState>) => { set(partial); saveCms(); saveTheme(); };
+// Legacy static access
+useCmsStore.setState = (partial: Partial<CmsState>) => { set(partial); saveCmsLocal(); saveThemeLocal(); };
 useCmsStore.getState = () => state;

@@ -4,35 +4,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ChevronRight, Sparkles } from "lucide-react";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+import { fetchCategory, fetchProducts } from "@/lib/api/ssr";
 
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-async function fetchCategory(slug: string) {
-  try {
-    const res = await fetch(`${API}/api/v1/categories/${slug}`, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json?.data ?? json ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchCategoryProducts(slug: string) {
-  try {
-    const res = await fetch(`${API}/api/v1/products?categorySlug=${slug}&status=PUBLISHED`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-  } catch {
-    return [];
-  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -56,7 +31,7 @@ export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
   const [category, categoryProducts] = await Promise.all([
     fetchCategory(slug),
-    fetchCategoryProducts(slug),
+    fetchProducts(`categorySlug=${slug}&status=PUBLISHED`),
   ]);
 
   if (!category) notFound();

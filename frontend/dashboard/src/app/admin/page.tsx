@@ -36,13 +36,11 @@ import { useTenantStore } from "@/store/useTenantStore";
 
 export default function AdminDashboardPage() {
   const { isPaymentPending: tenantPending, activeStore } = useTenantStore();
+  const ACTIVE_STATUSES = ["ACTIVE", "TRIALING"];
   const isPaymentPending =
     tenantPending ||
-    !activeStore?.subscription ||
-    activeStore.subscription.status === "PENDING" ||
-    activeStore.subscription.status === "UNPAID" ||
-    activeStore.subscription.status === "TRIALING" ||
-    activeStore.subscription.status !== "ACTIVE";
+    (!!activeStore?.subscription &&
+      !ACTIVE_STATUSES.includes(activeStore.subscription.status));
 
   const { products } = useProductStore();
   const { orders } = useOrderStore();
@@ -66,7 +64,7 @@ export default function AdminDashboardPage() {
     { label: "Logo & branding", done: Boolean(activeStore?.name) },
     { label: "Delivery settings", done: true },
     { label: "Payment methods", done: true },
-    { label: "First product added", done: storeProducts.length > 0 },
+    { label: "First product added", done: products.length > 0 },
     { label: "Customize homepage", done: !isPaymentPending },
     { label: "Shipping courier linked", done: !isPaymentPending },
     { label: "Subscription activated", done: !isPaymentPending },

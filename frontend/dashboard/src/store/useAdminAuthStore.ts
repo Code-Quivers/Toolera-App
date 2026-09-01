@@ -23,18 +23,16 @@ export function useAdminAuthStore() {
 
   const login = useCallback(async (email: string, password: string, rememberMe = true) => {
     try {
-      const res = await fetch(`${API}/api/v1/auth/admin/login`, {
+      const res = await fetch(`${API}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const json = await res.json();
       if (!res.ok) return { success: false, message: json.message || "Login failed." };
-      const { token, user } = json.data ?? json;
-      setAdminToken(token, rememberMe);
-      setAdminUser(user);
-      setLocalUser(user);
-      setAuthenticated(true);
+      const token = json.token ?? json.data?.token;
+      const user = json.user ?? json.data?.user;
+      if (token) { setAdminToken(token, rememberMe); setAdminUser(user); setLocalUser(user); setAuthenticated(true); }
       return { success: true, message: "Welcome back!" };
     } catch {
       return { success: false, message: "Network error." };
@@ -42,9 +40,6 @@ export function useAdminAuthStore() {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await fetch(`${API}/api/v1/auth/admin/logout`, { method: "POST", headers: getAuthHeader() });
-    } catch {}
     clearAdminToken();
     setLocalUser(null);
     setAuthenticated(false);
@@ -52,23 +47,19 @@ export function useAdminAuthStore() {
 
   const updateProfile = useCallback(async (data: Partial<AdminUser>) => {
     try {
-      await fetch(`${API}/api/v1/auth/admin/profile`, {
+      await fetch(`${API}/api/v1/auth/me`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify(data),
       });
       const current = getAdminUser();
-      if (current) {
-        const updated = { ...current, ...data };
-        setAdminUser(updated);
-        setLocalUser(updated);
-      }
+      if (current) { const updated = { ...current, ...data }; setAdminUser(updated); setLocalUser(updated); }
     } catch {}
   }, []);
 
   const changePassword = useCallback(async (currentPass: string, newPass: string) => {
     try {
-      const res = await fetch(`${API}/api/v1/auth/admin/change-password`, {
+      const res = await fetch(`${API}/api/v1/auth/change-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass }),
@@ -81,20 +72,22 @@ export function useAdminAuthStore() {
   }, []);
 
   const registerMerchant = useCallback(async (name: string, email: string, password: string) => {
-    const res = await fetch(`${API}/api/v1/auth/admin/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      const { token, user } = json.data ?? json;
-      setAdminToken(token);
-      setAdminUser(user);
-      setLocalUser(user);
-      setAuthenticated(true);
+    try {
+      const res = await fetch(`${API}/api/v1/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        const token = json.token ?? json.data?.token;
+        const user = json.user ?? json.data?.user;
+        if (token) { setAdminToken(token); setAdminUser(user); setLocalUser(user); setAuthenticated(true); }
+      }
+      return { success: res.ok, message: json.message };
+    } catch {
+      return { success: false, message: "Network error." };
     }
-    return { success: res.ok, message: json.message };
   }, []);
 
   const loginWithPin = useCallback(async (pin: string) => {

@@ -18,15 +18,13 @@ export async function requireAuth(req: AuthRequest, _res: Response, next: NextFu
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, config.jwtSecret) as AuthRequest['user'] & { id: string };
 
-    // Validate that this token is still active in Redis.
-    // The auth service (store-management) writes the token to Redis on login
-    // and deletes it on logout — giving real-time session invalidation.
+    // Check Redis only to detect explicit logouts (deleted key = logged out).
+    // We do NOT require the stored token to match — that enforces single-session
+    // and breaks when the user has multiple tabs or devices.
     const storedToken = await RedisClient.getAccessToken(decoded.id);
-    if (!storedToken) {
-      return next(new ApiError(401, 'Session not found. Please log in again.'));
-    }
-    if (storedToken !== token) {
-      return next(new ApiError(401, 'Session invalid. Please log in again.'));
+    if (storedToken === null) {
+      // Key missing means the user explicitly logged out — reject.
+      return next(new ApiError(401, 'Session expired. Please log in again.'));
     }
 
     req.user = decoded;
@@ -56,8 +54,9 @@ export async function optionalAuth(req: AuthRequest, _res: Response, next: NextF
       const decoded = jwt.verify(token, config.jwtSecret) as AuthRequest['user'] & {
         id: string;
       };
+      // Accept any valid JWT — only reject if explicitly logged out (null key in Redis)
       const storedToken = await RedisClient.getAccessToken(decoded.id);
-      if (storedToken && storedToken === token) {
+      if (storedToken !== null) {
         req.user = decoded;
       }
     }

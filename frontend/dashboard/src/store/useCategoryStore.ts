@@ -16,36 +16,80 @@ export interface CategoryItem {
   createdAt?: string;
 }
 
-export function useCategoryStore() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+// Module-level singleton — all hook instances share one list
+let globalCategories: CategoryItem[] = [];
+let globalLoading = false;
+let fetchPromise: Promise<void> | null = null;
+const listeners = new Set<() => void>();
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoading(true);
+function notify() {
+  listeners.forEach(l => l());
+}
+
+async function doFetch() {
+  if (globalLoading) return fetchPromise;
+  globalLoading = true;
+  notify();
+  fetchPromise = (async () => {
     try {
       const data = await api.getCategories();
-      setCategories(Array.isArray(data) ? data : []);
-    } catch {} finally { setIsLoading(false); }
+      globalCategories = Array.isArray(data) ? data : [];
+    } catch {
+      globalCategories = [];
+    } finally {
+      globalLoading = false;
+      fetchPromise = null;
+      notify();
+    }
+  })();
+  return fetchPromise;
+}
+
+export function useCategoryStore() {
+  const [, tick] = useState(0);
+
+  useEffect(() => {
+    const rerender = () => tick(n => n + 1);
+    listeners.add(rerender);
+    // Always fetch fresh on mount — no localStorage cache
+    doFetch();
+    return () => { listeners.delete(rerender); };
   }, []);
 
-  useEffect(() => { fetchCategories(); }, [fetchCategories]);
+  const fetchCategories = useCallback(() => doFetch(), []);
 
   const addCategory = useCallback(async (cat: any) => {
     const created = await api.createCategory(cat);
-    setCategories(prev => [created, ...prev]);
+    // Optimistic: add to top immediately, then re-fetch for real DB order
+    globalCategories = [created, ...globalCategories];
+    notify();
+    await doFetch();
     return created;
   }, []);
 
   const updateCategory = useCallback(async (id: string, data: any) => {
+    // Optimistic update
+    globalCategories = globalCategories.map(c => c.id === id ? { ...c, ...data } : c);
+    notify();
     const result = await api.updateCategory(id, data);
-    setCategories(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+    await doFetch();
     return result;
   }, []);
 
   const deleteCategory = useCallback(async (id: string) => {
+    // Optimistic remove
+    globalCategories = globalCategories.filter(c => c.id !== id);
+    notify();
     await api.deleteCategory(id);
-    setCategories(prev => prev.filter(c => c.id !== id));
+    await doFetch();
   }, []);
 
-  return { categories, isLoading, fetchCategories, addCategory, updateCategory, deleteCategory };
+  return {
+    categories: globalCategories,
+    isLoading: globalLoading,
+    fetchCategories,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+  };
 }

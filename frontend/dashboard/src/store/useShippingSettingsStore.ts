@@ -18,5 +18,15 @@ export function useShippingSettingsStore() {
     setSettings((prev: any) => ({ ...prev, ...data }));
   }, []);
 
-  return { settings, isLoading, fetchShipping, updateSettings };
+  return {
+    settings,
+    isLoading,
+    fetchShipping,
+    updateSettings,
+    // Direct field accessors used by orders page
+    insideDhakaCost: settings?.insideDhakaFee ?? 70,
+    outsideDhakaCost: settings?.outsideDhakaFee ?? 130,
+    vatEnabled: settings?.vatEnabled ?? false,
+    vatRate: settings?.vatRate ?? 0,
+  };
 }

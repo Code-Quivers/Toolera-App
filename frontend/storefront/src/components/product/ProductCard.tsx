@@ -122,7 +122,7 @@ export function ProductCard({ product, className, priority = false }: ProductCar
         <div>
           {/* Category */}
           <div className="text-[11px] font-medium text-teal-700 uppercase tracking-wider mb-1 line-clamp-1">
-            {product.category}
+            {product.category as string}
           </div>
 
           {/* Title */}

@@ -70,7 +70,7 @@ export default async function DynamicCustomPage({ params }: Props) {
 
           <div
             className="prose prose-slate max-w-none text-slate-700 text-sm sm:text-base leading-relaxed space-y-4"
-            dangerouslySetInnerHTML={{ __html: page.content }}
+            dangerouslySetInnerHTML={{ __html: page.content ?? "" }}
           />
         </article>
       </div>

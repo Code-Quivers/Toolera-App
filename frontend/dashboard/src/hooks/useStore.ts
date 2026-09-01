@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { getAuthHeader, type AdminUser } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const STORE_CACHE_KEY = "rm_active_store_cache";
 
 export interface StoreInfo {
   id: string;
@@ -30,25 +31,31 @@ export function useStore() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Read cache first so the redirect guard never sees store=null while loading
+    try {
+      const cached = localStorage.getItem(STORE_CACHE_KEY);
+      if (cached) setStore(JSON.parse(cached) as StoreInfo);
+    } catch {}
+
     const headers = getAuthHeader();
     if (!headers.Authorization) { setLoading(false); return; }
 
     fetch(`${API}/api/v1/stores/me`, { headers })
       .then(r => r.ok ? r.json() : null)
       .then(json => {
-        if (json?.data) setStore(json.data);
-        else if (json?.id) setStore(json as StoreInfo);
+        if (json?.data) {
+          setStore(json.data);
+          try { localStorage.setItem(STORE_CACHE_KEY, JSON.stringify(json.data)); } catch {}
+        } else if (json?.id) {
+          setStore(json as StoreInfo);
+          try { localStorage.setItem(STORE_CACHE_KEY, JSON.stringify(json)); } catch {}
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const isPaymentPending = !!store?.subscription && (
-    store.subscription.status === "PENDING" ||
-    store.subscription.status === "UNPAID" ||
-    store.subscription.status === "CANCELLED" ||
-    store.subscription.status === "EXPIRED"
-  );
+  const isPaymentPending = !!store?.subscription && ["PENDING", "UNPAID", "CANCELLED", "EXPIRED"].includes(store.subscription.status);
 
   return { store, loading, isPaymentPending };
 }

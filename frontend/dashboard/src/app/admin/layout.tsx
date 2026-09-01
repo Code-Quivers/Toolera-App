@@ -41,17 +41,20 @@ import {
   Zap,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { getAdminToken } from "@/lib/auth";
 import { useAdminCounts } from "@/hooks/useAdminCounts";
 import { useStore } from "@/hooks/useStore";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { AdminNotificationDropdown } from "@/components/admin/AdminNotificationDropdown";
+import { initCmsStore } from "@/lib/cms/useCmsStore";
+import { setDashboardStoreSlug } from "@/lib/api";
 import { LogOut, User, Lock, AlertTriangle } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user: adminUser, authenticated, loading: authLoading, logout, checkSession } = useAdminAuth();
-  const { store: activeStore, isPaymentPending } = useStore();
+  const { store: activeStore, loading: storeLoading, isPaymentPending } = useStore();
   const counts = useAdminCounts();
 
   // Base URL: /seller/{slug} when we know the slug, /admin as fallback
@@ -85,6 +88,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, checkSession, router, authLoading]);
 
+  // Wire the active store slug into both the CMS store and the API client
+  // so all dashboard API calls (products, categories, CMS) target the correct store
+  useEffect(() => {
+    if (storeSlug) {
+      initCmsStore(storeSlug);
+      setDashboardStoreSlug(storeSlug);
+    }
+  }, [storeSlug]);
+
   // Redirect /admin[/:path] → /seller/:storeSlug[/:path] once store slug is known
   useEffect(() => {
     if (!storeSlug) return;
@@ -93,6 +105,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.replace(`/seller/${storeSlug}${tail}`);
     }
   }, [storeSlug, pathname, router]);
+
+  // No store yet → send new user to onboarding (only after the fetch completes and user is authenticated)
+  useEffect(() => {
+    if (storeLoading || !authChecked) return;
+    if (!activeStore && !pathname.startsWith("/onboarding")) {
+      // Only redirect to onboarding if the user has an auth token.
+      // Without a token the auth effect above redirects to /login instead.
+      if (getAdminToken()) {
+        router.replace("/onboarding/store");
+      }
+    }
+  }, [storeLoading, authChecked, activeStore, pathname, router]);
 
   useEffect(() => {
     if (isPaymentPending && normPath !== "/admin" && normPath !== "/admin/billing") {
@@ -237,7 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { title: "Media Library", category: "Media", href: "/admin/media" },
     { title: "Coupons & Discounts", category: "Marketing", href: "/admin/marketing/coupons" },
     { title: "Shipping Settings", category: "Settings", href: "/admin/settings" },
-    { title: "View Storefront", category: "Storefront", href: "/" },
+    { title: "View Storefront", category: "Storefront", href: process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000" },
   ];
 
   const filteredCommands = commandItems.filter(
@@ -250,14 +274,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-sm">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-lg animate-pulse">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="text-center space-y-5 max-w-sm">
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src="/logo.png"
+              alt="Toolera"
+              style={{ width: 220, height: 120 }}
+              className="object-contain"
+            />
+          </div>
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 mx-auto flex items-center justify-center shadow-sm animate-pulse">
             <Lock className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">Verifying Seller Access...</h3>
-            <p className="text-xs text-slate-400">Loading your store dashboard.</p>
+            <h3 className="text-base font-bold text-slate-900">Verifying Seller Access...</h3>
+            <p className="text-xs text-slate-500">Loading your store dashboard.</p>
           </div>
         </div>
       </div>
@@ -370,9 +402,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {!sidebarCollapsed && (
           <div className="px-4 py-2 border-t border-slate-100 space-y-1 text-xs">
-            <Link
-              href="/"
+            <a
+              href={process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000"}
               target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center justify-between p-1.5 rounded-lg text-slate-500 hover:text-[#008B47] hover:bg-emerald-50/50 transition font-medium"
             >
               <span className="flex items-center gap-1.5">
@@ -380,7 +413,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <span>Storefront</span>
               </span>
               <ArrowUpRight className="w-3 h-3 text-slate-400" />
-            </Link>
+            </a>
             <Link
               href="/admin/settings/account"
               className="flex items-center justify-between p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition font-medium"
@@ -431,7 +464,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-3 sm:gap-4">
             <AdminNotificationDropdown />
             <Link
-              href="/"
+              href={process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000"}
               target="_blank"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 text-xs font-bold transition shadow-2xs"
             >

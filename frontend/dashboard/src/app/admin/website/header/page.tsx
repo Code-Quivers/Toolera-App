@@ -31,9 +31,14 @@ export default function AdminHeaderPage() {
   const [activeDeviceTab, setActiveDeviceTab] = useState<"desktop" | "mobile">("desktop");
   const [notification, setNotification] = useState<string | null>(null);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setNotification("Header settings & navbar layout updated successfully!");
+    try {
+      await updateSettings(settings);
+      setNotification("Header settings & navbar layout saved to store!");
+    } catch {
+      setNotification("Failed to save. Please try again.");
+    }
     setTimeout(() => setNotification(null), 3000);
   };
 

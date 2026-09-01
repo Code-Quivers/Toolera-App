@@ -45,5 +45,13 @@ export function useCustomerStore() {
     setCustomers(prev => prev.map(c => c.id === id ? { ...c, dueAmount: Math.max(0, (c.dueAmount || 0) - amount) } : c));
   }, []);
 
-  return { customers, isLoading, fetchCustomers, addCustomer, updateCustomer, deleteCustomer, recordDuePayment };
+  const addCustomerDue = useCallback((phone: string, amount: number) => {
+    setCustomers(prev => prev.map(c =>
+      (c.phone === phone || c.customerPhone === phone)
+        ? { ...c, dueAmount: (c.dueAmount || 0) + amount }
+        : c
+    ));
+  }, []);
+
+  return { customers, isLoading, fetchCustomers, addCustomer, updateCustomer, deleteCustomer, recordDuePayment, addCustomerDue };
 }

@@ -3,6 +3,18 @@ import { getAuthHeader } from "@/lib/auth";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+// Active store slug — set by the admin layout when the store is known.
+// Appended as ?storeSlug= to product/category/order reads so the business
+// service can resolve the correct store without relying on auth-token fallback.
+let _dashboardSlug = "";
+export function setDashboardStoreSlug(slug: string) { _dashboardSlug = slug; }
+function sq(extra = "") {
+  const base = _dashboardSlug ? `storeSlug=${encodeURIComponent(_dashboardSlug)}` : "";
+  if (!base && !extra) return "";
+  if (!base) return `?${extra}`;
+  return extra ? `?${base}&${extra}` : `?${base}`;
+}
+
 export async function apiFetch<T = unknown>(
   path: string,
   options?: RequestInit
@@ -20,14 +32,14 @@ export async function apiFetch<T = unknown>(
 
 export const api = {
   // ── Products ───────────────────────────────────────────────────────────────
-  getProducts: (params = "") => apiFetch<any[]>(`/api/v1/products${params}`),
+  getProducts: (params = "") => apiFetch<any[]>(`/api/v1/products${sq(params.replace(/^\?/, ""))}`),
   getProduct: (id: string) => apiFetch<any>(`/api/v1/products/${id}`),
   createProduct: (data: unknown) => apiFetch<any>("/api/v1/products", { method: "POST", body: JSON.stringify(data) }),
   updateProduct: (id: string, data: unknown) => apiFetch<any>(`/api/v1/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteProduct: (id: string) => apiFetch<void>(`/api/v1/products/${id}`, { method: "DELETE" }),
 
   // ── Categories ─────────────────────────────────────────────────────────────
-  getCategories: () => apiFetch<any[]>("/api/v1/categories"),
+  getCategories: () => apiFetch<any[]>(`/api/v1/categories${sq()}`),
   createCategory: (data: unknown) => apiFetch<any>("/api/v1/categories", { method: "POST", body: JSON.stringify(data) }),
   updateCategory: (id: string, data: unknown) => apiFetch<any>(`/api/v1/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteCategory: (id: string) => apiFetch<void>(`/api/v1/categories/${id}`, { method: "DELETE" }),
@@ -35,7 +47,10 @@ export const api = {
   // ── Orders ─────────────────────────────────────────────────────────────────
   getOrders: (params = "") => apiFetch<any[]>(`/api/v1/orders${params}`),
   getOrder: (id: string) => apiFetch<any>(`/api/v1/orders/${id}`),
+  createOrder: (data: unknown) => apiFetch<any>("/api/v1/orders", { method: "POST", body: JSON.stringify(data) }),
   updateOrderStatus: (id: string, status: string) => apiFetch<any>(`/api/v1/orders/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  updateOrderTracking: (id: string, trackingCode: string) => apiFetch<any>(`/api/v1/orders/${id}/tracking`, { method: "PATCH", body: JSON.stringify({ trackingCode }) }),
+  deleteOrder: (id: string) => apiFetch<void>(`/api/v1/orders/${id}`, { method: "DELETE" }),
 
   // ── Customers ──────────────────────────────────────────────────────────────
   getCustomers: (params = "") => apiFetch<any[]>(`/api/v1/customers${params}`),
@@ -59,12 +74,12 @@ export const api = {
   deleteAttribute: (id: string) => apiFetch<void>(`/api/v1/attributes/${id}`, { method: "DELETE" }),
 
   // ── Media ──────────────────────────────────────────────────────────────────
-  getMedia: () => apiFetch<any[]>("/api/v1/media"),
+  getMedia: () => apiFetch<any[]>("/api/v1/upload/media"),
   uploadMedia: (form: FormData) => {
     const headers = getAuthHeader();
-    return fetch(`${BASE}/api/v1/media`, { method: "POST", headers, body: form }).then(r => r.json());
+    return fetch(`${BASE}/api/v1/upload/single`, { method: "POST", headers, body: form }).then(r => r.json());
   },
-  deleteMedia: (id: string) => apiFetch<void>(`/api/v1/media/${id}`, { method: "DELETE" }),
+  deleteMedia: (id: string) => apiFetch<void>(`/api/v1/upload/media/${id}`, { method: "DELETE" }),
 
   // ── Store settings ─────────────────────────────────────────────────────────
   getStore: () => apiFetch<any>("/api/v1/stores/me"),

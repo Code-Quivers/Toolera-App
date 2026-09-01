@@ -517,14 +517,15 @@ export default function AdminProductsPage() {
                         </button>
 
                         {/* View on Store Link */}
-                        <Link
-                          href={`/product/${prod.slug}`}
+                        <a
+                          href={`${process.env.NEXT_PUBLIC_STOREFRONT_URL || "http://localhost:3000"}/product/${prod.slug}`}
                           target="_blank"
+                          rel="noopener noreferrer"
                           className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-[#008B47] text-slate-600 transition"
                           title="View Live on Store"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                        </Link>
+                        </a>
 
                         {/* Edit Product (Full Page) */}
                         <Link
