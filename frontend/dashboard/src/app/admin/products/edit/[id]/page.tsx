@@ -130,7 +130,11 @@ export default function AdminEditProductPage() {
   const [deliveryChargeOutside, setDeliveryChargeOutside] = useState("130");
   const [warranty, setWarranty] = useState("7-Day Replacement Warranty");
   const [returnPolicy, setReturnPolicy] = useState("7-Day Easy Return");
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const STOREFRONT_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   // Populate data when existingProduct is found
   useEffect(() => {
@@ -230,11 +234,14 @@ export default function AdminEditProductPage() {
   };
 
   // Save / Update
-  const handleSave = (saveStatus: "PUBLISHED" | "DRAFT") => {
+  const handleSave = async (saveStatus: "PUBLISHED" | "DRAFT") => {
     if (!title.trim()) {
-      alert("Please enter a product title");
+      setNotification({ msg: "Please enter a product title.", ok: false });
       return;
     }
+    if (isSaving) return;
+    setIsSaving(true);
+    setNotification(null);
 
     const finalSlug = slug || slugify(title);
     const primaryBadge = badgeNew
@@ -292,18 +299,29 @@ export default function AdminEditProductPage() {
       seoDescription: seoDescription || shortDesc,
     };
 
-    updateProduct(productId, updatedData);
-    setNotification(saveStatus === "PUBLISHED" ? "Product updated and published live!" : "Product draft changes saved!");
-
-    setTimeout(() => {
-      router.push("/admin/products");
-    }, 1200);
+    try {
+      await updateProduct(productId, updatedData);
+      setNotification({
+        msg: saveStatus === "PUBLISHED" ? "Product updated and published live!" : "Draft saved successfully.",
+        ok: true,
+      });
+      setTimeout(() => router.push("/admin/products"), 1200);
+    } catch (err: any) {
+      setNotification({ msg: err?.message || "Failed to save product. Please try again.", ok: false });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to permanently delete "${title}"?`)) {
-      deleteProduct(productId);
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to permanently delete "${title}"?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteProduct(productId);
       router.push("/admin/products");
+    } catch (err: any) {
+      setNotification({ msg: err?.message || "Failed to delete product.", ok: false });
+      setIsDeleting(false);
     }
   };
 
@@ -356,45 +374,74 @@ export default function AdminEditProductPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href={`/product/${existingProduct.slug}`}
+          <a
+            href={`${STOREFRONT_URL}/product/${existingProduct.slug}`}
             target="_blank"
+            rel="noopener noreferrer"
             className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
           >
             <ExternalLink className="w-3.5 h-3.5" />
             <span>View Live</span>
-          </Link>
+          </a>
           <button
             type="button"
             onClick={handleDelete}
-            className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+            disabled={isDeleting || isSaving}
+            className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-50"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>Delete</span>
+            {isDeleting ? (
+              <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            <span>{isDeleting ? "Deleting…" : "Delete"}</span>
           </button>
           <button
             type="button"
             onClick={() => handleSave("DRAFT")}
-            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-xs"
+            disabled={isSaving || isDeleting}
+            className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
           >
-            Save as Draft
+            {isSaving ? (
+              <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+            ) : null}
+            <span>Save as Draft</span>
           </button>
           <button
             type="button"
             onClick={() => handleSave("PUBLISHED")}
-            className="px-5 py-2.5 bg-[#008B47] hover:bg-[#007a3e] text-white rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5"
+            disabled={isSaving || isDeleting}
+            className="px-5 py-2.5 bg-[#008B47] hover:bg-[#007a3e] text-white rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5 disabled:opacity-50"
           >
-            <Check className="w-4 h-4" />
-            <span>Save &amp; Update Live</span>
+            {isSaving ? (
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+            ) : (
+              <Check className="w-4 h-4" />
+            )}
+            <span>{isSaving ? "Saving…" : "Save & Update Live"}</span>
           </button>
         </div>
       </div>
 
       {/* Notification Toast */}
       {notification && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-in fade-in shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>{notification}</span>
+        <div className={`p-4 rounded-2xl border text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in shadow-xs ${notification.ok ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-rose-50 border-rose-200 text-rose-900"}`}>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className={`w-4 h-4 shrink-0 ${notification.ok ? "text-emerald-600" : "text-rose-600"}`} />
+            <span>{notification.msg}</span>
+          </div>
+          <button type="button" onClick={() => setNotification(null)} className="text-slate-400 hover:text-slate-700">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

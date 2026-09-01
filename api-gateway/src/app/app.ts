@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from './config';
-import { globalRateLimit } from './middlewares/rateLimit.middleware';
 import { requestLogger } from './middlewares/requestLogger.middleware';
 import ApiError from './errors/ApiError';
 
@@ -32,7 +31,6 @@ app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
-app.use(globalRateLimit);
 
 // Health check
 app.get('/health', (_req, res) => {

@@ -4,6 +4,7 @@ import {
   getCmsConfig, saveHomepageSections, updateThemeSettings, updateSeoSettings,
   getHeader, updateHeader, getFooter, updateFooter,
   getMenus, updateMenus, getPages, getPage, createPage, updatePage, deletePage,
+  getHomepage, saveDraftHomepage, publishHomepage, getHomepageRevisions, restoreHomepageRevision,
 } from './cms.controller.js';
 import { requireAdmin, optionalAuth } from '../../middlewares/auth.middleware.js';
 
@@ -26,6 +27,13 @@ cmsRouter.patch('/footer', requireAdmin, updateFooter);
 // Menus / Navigation
 cmsRouter.get('/menus', optionalAuth, getMenus);
 cmsRouter.put('/menus', requireAdmin, updateMenus);
+
+// Homepage Visual Builder
+cmsRouter.get('/homepage', requireAdmin, getHomepage);
+cmsRouter.post('/homepage/draft', requireAdmin, saveDraftHomepage);
+cmsRouter.post('/homepage/publish', requireAdmin, publishHomepage);
+cmsRouter.get('/homepage/revisions', requireAdmin, getHomepageRevisions);
+cmsRouter.post('/homepage/revisions/:revisionId/restore', requireAdmin, restoreHomepageRevision);
 
 // Pages
 cmsRouter.get('/pages', optionalAuth, getPages);

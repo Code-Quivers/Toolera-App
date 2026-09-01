@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useMemo } from "react";
-import { useMediaStore, MediaItem } from "@/store/useMediaStore";
+import { useMediaStore } from "@/store/useMediaStore";
 import {
   Image as ImageIcon,
   Plus,
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export default function AdminMediaPage() {
-  const { mediaList, addMedia, updateMedia, deleteMedia } = useMediaStore();
+  const { mediaList, addMedia, updateMedia, deleteMedia, isLoading: isFetchingMedia, fetchError, fetchMedia } = useMediaStore();
 
   const [activeTab, setActiveTab] = useState<"library" | "upload">("library");
   const [selectedId, setSelectedId] = useState<string | null>(mediaList[0]?.id || null);
@@ -78,68 +78,40 @@ export default function AdminMediaPage() {
 
     const validFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
     if (validFiles.length === 0) {
-      alert("Please upload valid image files (PNG, JPG, WebP, SVG).");
+      showNotification("Please upload valid image files (PNG, JPG, WebP, SVG).");
       setIsUploading(false);
       return;
     }
 
     try {
-      let lastUploaded: MediaItem | null = null;
-      for (const file of validFiles) {
-        const item = await new Promise<MediaItem>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const rawDataUrl = e.target?.result as string;
-            if (file.type.includes("svg")) {
-              const res = addMedia({
-                name: file.name,
-                url: rawDataUrl,
-                size: `${Math.round(file.size / 1024)} KB`,
-                dimensions: "Vector SVG",
-                fileType: "image/svg+xml",
-              });
-              resolve(res);
-              return;
-            }
+      const form = new FormData();
+      validFiles.forEach((f) => form.append("images", f));
 
-            const img = new window.Image();
-            img.onload = () => {
-              const canvas = document.createElement("canvas");
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext("2d");
-              if (ctx) {
-                ctx.drawImage(img, 0, 0);
-                const isPng = file.type.includes("png");
-                const optimizedUrl = isPng
-                  ? canvas.toDataURL("image/png")
-                  : canvas.toDataURL("image/webp", 0.88);
-                const sizeKb = Math.round((optimizedUrl.length * 3) / 4 / 1024);
-                const res = addMedia({
-                  name: file.name,
-                  url: optimizedUrl,
-                  size: `${sizeKb} KB`,
-                  dimensions: `${img.width}x${img.height}`,
-                  fileType: isPng ? "image/png" : "image/webp",
-                  altText: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
-                });
-                resolve(res);
-              }
-            };
-            img.src = rawDataUrl;
-          };
-          reader.readAsDataURL(file);
-        });
-        lastUploaded = item;
+      const { api } = await import("@/lib/api");
+      const result = await api.uploadMultipleMedia(form);
+      const uploaded: any[] = Array.isArray(result?.data) ? result.data : result?.data ? [result.data] : [];
+
+      if (uploaded.length === 0) {
+        throw new Error(result?.message || "Upload failed — no files returned from server.");
       }
 
-      if (lastUploaded) {
-        setSelectedId(lastUploaded.id);
-      }
+      const newItems = uploaded.map((d: any) =>
+        addMedia({
+          id: d.id,
+          name: d.filename || d.name || d.url?.split("/").pop() || "file",
+          url: d.url,
+          size: d.size ? `${Math.round(d.size / 1024)} KB` : undefined,
+          fileType: d.mimeType || d.fileType,
+          altText: d.altText || d.filename?.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+          createdAt: d.createdAt,
+        })
+      );
+
+      setSelectedId(newItems[0]?.id ?? null);
       setActiveTab("library");
-      showNotification(`Uploaded ${validFiles.length} file(s) successfully!`);
-    } catch (err) {
-      console.error("Upload error:", err);
+      showNotification(`${uploaded.length} file(s) uploaded to MinIO successfully!`);
+    } catch (err: any) {
+      showNotification(`Upload failed: ${err?.message || "Unknown error"}`);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -307,6 +279,30 @@ export default function AdminMediaPage() {
 
               {/* Grid */}
               <div className="flex-1 p-5 overflow-y-auto max-h-[600px]">
+                {isFetchingMedia ? (
+                  <div className="flex flex-col items-center justify-center h-48 gap-3 text-slate-400">
+                    <svg className="animate-spin w-8 h-8 text-[#008B47]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    <span className="text-sm font-medium">Loading media library...</span>
+                  </div>
+                ) : fetchError ? (
+                  <div className="flex flex-col items-center justify-center h-48 gap-3 text-red-500">
+                    <span className="text-sm font-medium">{fetchError}</span>
+                    <button
+                      onClick={fetchMedia}
+                      className="px-4 py-2 bg-[#008B47] text-white text-xs font-bold rounded-xl hover:bg-[#007a3e] transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : filteredList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-48 gap-2 text-slate-400">
+                    <span className="text-sm font-medium">No media files found.</span>
+                    <span className="text-xs">Upload images using the Upload tab.</span>
+                  </div>
+                ) : null}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                   {filteredList.map((item) => {
                     const isSelected = selectedId === item.id;

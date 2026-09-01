@@ -27,7 +27,22 @@ export function useMenuStore() {
 
   useEffect(() => {
     setIsLoading(true);
-    sfApi.getMenus().then(d => setMenus(Array.isArray(d) ? d : [])).catch(() => {}).finally(() => setIsLoading(false));
+    sfApi.getMenus()
+      .then(d => {
+        if (!Array.isArray(d)) { setMenus([]); return; }
+        // Normalize DB field names (title→label, url→href) so all consumers work uniformly
+        const normalized = d.map((menu: any) => ({
+          ...menu,
+          items: (menu.items ?? []).map((item: any) => ({
+            ...item,
+            label: item.label ?? item.title ?? '',
+            href: item.href ?? item.url ?? '#',
+          })),
+        }));
+        setMenus(normalized);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   const getMenuByLocation = useCallback(

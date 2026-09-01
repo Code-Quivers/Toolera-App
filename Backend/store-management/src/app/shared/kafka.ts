@@ -9,7 +9,7 @@ const kafka = new Kafka({
   clientId: CLIENT_ID,
   brokers: BROKERS,
   logLevel: logLevel.ERROR,
-  retry: { initialRetryTime: 300, retries: 8 },
+  retry: { initialRetryTime: 300, retries: 2 },
 });
 
 let producer: Producer | null = null;

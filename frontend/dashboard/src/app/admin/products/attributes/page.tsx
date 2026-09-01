@@ -54,6 +54,7 @@ export default function AttributesAdminPage() {
   const [slug, setSlug] = useState("");
   const [type, setType] = useState<AttributeType>("COLOR");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Search and Filter
   const [search, setSearch] = useState("");
@@ -76,12 +77,14 @@ export default function AttributesAdminPage() {
   const handleNameChange = (val: string) => {
     setName(val);
     setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
+    if (createError) setCreateError(null);
   };
 
   const handleCreateAttribute = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setIsSubmitting(true);
+    setCreateError(null);
     try {
       await addAttribute({
         name: name.trim(),
@@ -91,6 +94,13 @@ export default function AttributesAdminPage() {
       setName("");
       setSlug("");
       setType("COLOR");
+    } catch (err: any) {
+      const msg: string = err?.message ?? "Failed to create attribute";
+      if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
+        setCreateError(`An attribute named "${name.trim()}" already exists. Use a different name.`);
+      } else {
+        setCreateError(msg);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -247,6 +257,13 @@ export default function AttributesAdminPage() {
               </div>
             </div>
 
+            {createError && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+                <span className="shrink-0 mt-0.5">⚠</span>
+                <span>{createError}</span>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
@@ -334,10 +351,10 @@ export default function AttributesAdminPage() {
 
                       {/* Values Preview Pills */}
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {attr.values.length === 0 ? (
+                        {(attr.values ?? []).length === 0 ? (
                           <span className="text-xs text-slate-400 italic font-medium">No values added yet. Click Manage Values to add.</span>
                         ) : (
-                          attr.values.map((v) => (
+                          (attr.values ?? []).map((v) => (
                             <span
                               key={v.id}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs"
@@ -363,7 +380,7 @@ export default function AttributesAdminPage() {
                         className="px-3.5 py-2 rounded-xl bg-[#008B47]/10 hover:bg-[#008B47]/20 text-[#008B47] text-xs font-bold border border-[#008B47]/20 transition flex items-center gap-1.5"
                       >
                         <Settings2 className="w-3.5 h-3.5" />
-                        <span>Manage Values ({attr.values.length})</span>
+                        <span>Manage Values ({(attr.values ?? []).length})</span>
                       </button>
 
                       <button
@@ -644,7 +661,7 @@ export default function AttributesAdminPage() {
                 </div>
               ) : (
                 <p className="text-slate-500">
-                  This will permanently delete this attribute and its {deleteConfirmAttr.attr.values.length} values from the global library.
+                  This will permanently delete this attribute and its {(deleteConfirmAttr.attr.values ?? []).length} values from the global library.
                 </p>
               )}
             </div>

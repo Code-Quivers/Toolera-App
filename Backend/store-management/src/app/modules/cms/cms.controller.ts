@@ -381,3 +381,177 @@ export async function deletePage(req: AuthRequest, res: Response) {
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+
+// ── Homepage Visual Builder ─────────────────────────────────────────────────
+
+async function getOrCreateHomepagePage(storeId: string, author: string) {
+  const [page] = await db
+    .insert(pagesTable)
+    .values({ slug: `homepage-${storeId}`, title: 'Home Page', isHomepage: true, storeId })
+    .onConflictDoUpdate({ target: pagesTable.slug, set: { updatedAt: new Date() } })
+    .returning();
+  return page;
+}
+
+export async function getHomepage(req: AuthRequest, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req);
+    if (!storeId) return res.json({ success: true, data: { draftSections: [], publishedSections: [], revisions: [] } });
+
+    const page = await rdb().query.pagesTable.findFirst({
+      where: and(eq(pagesTable.slug, `homepage-${storeId}`), eq(pagesTable.storeId, storeId)),
+      with: { revisions: { orderBy: desc(pageRevisionsTable.version), limit: 30 } },
+    });
+
+    if (!page) return res.json({ success: true, data: { draftSections: [], publishedSections: [], revisions: [] } });
+
+    const revisions = (page as any).revisions || [];
+    const latestRev = revisions[0] ?? null;
+    const publishedRev = revisions.find((r: any) => r.isPublished) ?? null;
+
+    return res.json({
+      success: true,
+      data: {
+        draftSections: latestRev?.sectionsSnapshot ?? publishedRev?.sectionsSnapshot ?? [],
+        publishedSections: publishedRev?.sectionsSnapshot ?? [],
+        revisions: revisions.map((r: any) => ({
+          id: r.id,
+          version: r.version,
+          title: r.title,
+          isPublished: r.isPublished,
+          publishedAt: r.publishedAt,
+          createdBy: r.createdBy,
+          notes: r.notes,
+          createdAt: r.createdAt,
+          sectionsSnapshot: r.sectionsSnapshot,
+        })),
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function saveDraftHomepage(req: AuthRequest, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req);
+    if (!storeId) return res.status(403).json({ success: false, message: 'Store not found.' });
+
+    const { sections, author, notes } = req.body;
+    const page = await getOrCreateHomepagePage(storeId, author);
+
+    const countResult = await rdb().select({ count: count() }).from(pageRevisionsTable).where(eq(pageRevisionsTable.pageId, page.id));
+    const revisionCount = Number(countResult[0].count);
+
+    const [newRev] = await db.insert(pageRevisionsTable).values({
+      pageId: page.id,
+      version: revisionCount + 1,
+      title: `Draft v${revisionCount + 1}`,
+      sectionsSnapshot: sections,
+      isPublished: false,
+      publishedAt: null,
+      createdBy: author || req.user?.name || 'Admin',
+      notes: notes ?? null,
+    }).returning();
+
+    return res.json({ success: true, message: 'Draft saved', revision: newRev });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function publishHomepage(req: AuthRequest, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req);
+    if (!storeId) return res.status(403).json({ success: false, message: 'Store not found.' });
+
+    const { sections, author, notes } = req.body;
+    const page = await getOrCreateHomepagePage(storeId, author);
+
+    const countResult = await rdb().select({ count: count() }).from(pageRevisionsTable).where(eq(pageRevisionsTable.pageId, page.id));
+    const revisionCount = Number(countResult[0].count);
+
+    const [newRev] = await db.insert(pageRevisionsTable).values({
+      pageId: page.id,
+      version: revisionCount + 1,
+      title: `Published v${revisionCount + 1}`,
+      sectionsSnapshot: sections,
+      isPublished: true,
+      publishedAt: new Date(),
+      createdBy: author || req.user?.name || 'Admin',
+      notes: notes ?? null,
+    }).returning();
+
+    await db.update(pagesTable).set({ currentRevisionId: newRev.id }).where(eq(pagesTable.id, page.id));
+
+    return res.json({ success: true, message: 'Homepage published live', revision: newRev });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function getHomepageRevisions(req: AuthRequest, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req);
+    if (!storeId) return res.json({ success: true, data: [] });
+
+    const page = await rdb()
+      .select({ id: pagesTable.id })
+      .from(pagesTable)
+      .where(and(eq(pagesTable.slug, `homepage-${storeId}`), eq(pagesTable.storeId, storeId)))
+      .limit(1)
+      .then(r => r[0] ?? null);
+
+    if (!page) return res.json({ success: true, data: [] });
+
+    const revisions = await rdb()
+      .select()
+      .from(pageRevisionsTable)
+      .where(eq(pageRevisionsTable.pageId, page.id))
+      .orderBy(desc(pageRevisionsTable.version))
+      .limit(30);
+
+    return res.json({ success: true, data: revisions });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function restoreHomepageRevision(req: AuthRequest, res: Response) {
+  try {
+    const storeId = await resolveStoreId(req);
+    if (!storeId) return res.status(403).json({ success: false, message: 'Store not found.' });
+
+    const { revisionId } = req.params;
+    const { author } = req.body;
+
+    const targetRev = await rdb()
+      .select()
+      .from(pageRevisionsTable)
+      .where(eq(pageRevisionsTable.id, revisionId))
+      .limit(1)
+      .then(r => r[0] ?? null);
+
+    if (!targetRev) return res.status(404).json({ success: false, message: 'Revision not found.' });
+
+    const countResult = await rdb().select({ count: count() }).from(pageRevisionsTable).where(eq(pageRevisionsTable.pageId, targetRev.pageId));
+    const revisionCount = Number(countResult[0].count);
+
+    const [newRev] = await db.insert(pageRevisionsTable).values({
+      pageId: targetRev.pageId,
+      version: revisionCount + 1,
+      title: `Restored from v${targetRev.version}`,
+      sectionsSnapshot: targetRev.sectionsSnapshot,
+      isPublished: true,
+      publishedAt: new Date(),
+      createdBy: author || req.user?.name || 'Admin',
+      notes: `Restored from revision v${targetRev.version}`,
+    }).returning();
+
+    await db.update(pagesTable).set({ currentRevisionId: newRev.id }).where(eq(pagesTable.id, targetRev.pageId));
+
+    return res.json({ success: true, message: 'Revision restored and published', revision: newRev });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}

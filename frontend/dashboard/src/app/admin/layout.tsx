@@ -206,6 +206,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { href: `${b}/categories`, label: "Categories", icon: Layers },
         { href: `${b}/products/attributes`, label: "Attributes", icon: Sliders },
         { href: `${b}/inventory`, label: "Inventory", icon: Warehouse },
+        { href: `${b}/media`, label: "Media Library", icon: ImageIcon },
       ],
     },
     {

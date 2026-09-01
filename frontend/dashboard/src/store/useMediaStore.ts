@@ -13,9 +13,11 @@ export interface MediaItem {
   createdAt?: string;
 }
 
-// Module-level singleton so media list is shared across modal instances
+// Module-level singleton — shared across all hook instances and survives re-renders
 let globalMedia: MediaItem[] = [];
+let isFetching = false; // module-level guard — no stale closure issues
 const listeners = new Set<(list: MediaItem[]) => void>();
+
 function notifyAll(list: MediaItem[]) {
   globalMedia = list;
   listeners.forEach(l => l(list));
@@ -23,8 +25,10 @@ function notifyAll(list: MediaItem[]) {
 
 export function useMediaStore() {
   const [mediaFiles, setMediaFiles] = useState<MediaItem[]>(globalMedia);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(isFetching);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
+  // Subscribe to global state changes
   useEffect(() => {
     const handler = (list: MediaItem[]) => setMediaFiles([...list]);
     listeners.add(handler);
@@ -32,8 +36,10 @@ export function useMediaStore() {
   }, []);
 
   const fetchMedia = useCallback(async () => {
-    if (isLoading) return;
+    if (isFetching) return; // module-level guard — never stale
+    isFetching = true;
     setIsLoading(true);
+    setFetchError(null);
     try {
       const data = await api.getMedia();
       const items: MediaItem[] = (Array.isArray(data) ? data : []).map((d: any) => ({
@@ -46,12 +52,18 @@ export function useMediaStore() {
         createdAt: d.createdAt,
       }));
       notifyAll(items);
-    } catch {} finally { setIsLoading(false); }
-  }, [isLoading]);
+    } catch (err: any) {
+      setFetchError(err?.message || "Failed to load media library");
+    } finally {
+      isFetching = false;
+      setIsLoading(false);
+    }
+  }, []); // no dependencies — uses module-level guard, never stale
 
+  // Always fetch on mount — reload always gets fresh data from backend
   useEffect(() => {
-    if (globalMedia.length === 0) fetchMedia();
-  }, []);
+    fetchMedia();
+  }, [fetchMedia]);
 
   const addMedia = useCallback((item: Omit<MediaItem, "id"> & { id?: string }): MediaItem => {
     const newItem: MediaItem = { id: item.id || crypto.randomUUID(), ...item };
@@ -70,9 +82,16 @@ export function useMediaStore() {
   }, []);
 
   const deleteMedia = useCallback(async (id: string) => {
+    // Optimistic removal
     notifyAll(globalMedia.filter(m => m.id !== id));
-    try { await api.deleteMedia(id); } catch {}
-  }, []);
+    try {
+      await api.deleteMedia(id);
+    } catch (err: any) {
+      // Restore on failure
+      await fetchMedia();
+      throw err;
+    }
+  }, [fetchMedia]);
 
   const uploadFile = useCallback(async (form: FormData) => {
     const result = await api.uploadMedia(form);
@@ -94,5 +113,17 @@ export function useMediaStore() {
 
   const deleteFile = deleteMedia;
 
-  return { mediaFiles, mediaList: mediaFiles, isLoading, fetchMedia, addMedia, addMultipleMedia, updateMedia, deleteMedia, uploadFile, deleteFile };
+  return {
+    mediaFiles,
+    mediaList: mediaFiles,
+    isLoading,
+    fetchError,
+    fetchMedia,
+    addMedia,
+    addMultipleMedia,
+    updateMedia,
+    deleteMedia,
+    uploadFile,
+    deleteFile,
+  };
 }

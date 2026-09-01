@@ -89,6 +89,35 @@ const PRESETS = [
   },
 ];
 
+function CustomValueInput({ onAdd }: { onAdd: (val: string) => void }) {
+  const [val, setVal] = useState("");
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!val.trim()) return;
+    onAdd(val.trim());
+    setVal("");
+  };
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <input
+        type="text"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Add value (e.g. Small, Red, 500mAh)..."
+        className="flex-1 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#008B47] placeholder:text-slate-400 transition"
+      />
+      <button
+        type="submit"
+        disabled={!val.trim()}
+        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition disabled:opacity-40 flex items-center gap-1"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        Add
+      </button>
+    </form>
+  );
+}
+
 export function ProductAttributesVariationsEditor({
   productType,
   setProductType,
@@ -261,6 +290,31 @@ export function ProductAttributesVariationsEditor({
     setAttributes(newAttrsList);
   };
 
+  // Add a custom value inline to a custom attribute
+  const handleAddCustomValue = (attrIndex: number, valueName: string) => {
+    const trimmed = valueName.trim();
+    if (!trimmed) return;
+    const target = attributes[attrIndex];
+    if (target.values.some((v) => v.name.toLowerCase() === trimmed.toLowerCase())) return;
+    const newVal = {
+      id: `pav-cust-${Date.now()}-${attrIndex}`,
+      name: trimmed,
+      slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      position: target.values.length,
+    };
+    const updated = [...attributes];
+    updated[attrIndex] = { ...target, values: [...target.values, newVal] };
+    setAttributes(updated);
+  };
+
+  // Remove a single custom value from a custom attribute
+  const handleRemoveCustomValue = (attrIndex: number, valueId: string) => {
+    const target = attributes[attrIndex];
+    const updated = [...attributes];
+    updated[attrIndex] = { ...target, values: target.values.filter((v) => v.id !== valueId) };
+    setAttributes(updated);
+  };
+
   // Toggle single value for an attribute
   const handleToggleValueSelection = (attrIndex: number, globalVal: any) => {
     const target = attributes[attrIndex];
@@ -400,10 +454,12 @@ export function ProductAttributesVariationsEditor({
 
   // Bulk Edit Actions
   const handleApplyBulkEdit = () => {
-    if (selectedVarIds.length === 0 || !bulkAction) return;
+    if (!bulkAction) return;
+    // If nothing selected, apply to all
+    const targetIds = selectedVarIds.length > 0 ? selectedVarIds : variations.map((v) => v.id);
 
     const updated = variations.map((v) => {
-      if (!selectedVarIds.includes(v.id)) return v;
+      if (!targetIds.includes(v.id)) return v;
 
       switch (bulkAction) {
         case "SET_PRICE":
@@ -735,15 +791,32 @@ export function ProductAttributesVariationsEditor({
                         })}
                       </div>
                     ) : (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {attr.values.map((v) => (
-                          <span
-                            key={v.id}
-                            className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs"
-                          >
-                            {v.name}
-                          </span>
-                        ))}
+                      <div className="space-y-2 pt-1">
+                        <div className="flex flex-wrap gap-2">
+                          {attr.values.map((v) => (
+                            <span
+                              key={v.id}
+                              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs"
+                            >
+                              {v.name}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveCustomValue(attrIdx, v.id)}
+                                className="text-slate-300 hover:text-rose-500 transition ml-0.5"
+                                title="Remove value"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <CustomValueInput onAdd={(val) => handleAddCustomValue(attrIdx, val)} />
+                        {attr.values.length === 0 && (
+                          <p className="text-[11px] text-amber-600 font-semibold flex items-center gap-1">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            Add at least one value to enable variation generation.
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -799,15 +872,23 @@ export function ProductAttributesVariationsEditor({
                 </span>
               )}
 
-              <button
-                type="button"
-                onClick={handleGenerateVariations}
-                disabled={potentialCount === 0}
-                className="px-4 py-2 rounded-xl bg-[#008B47] hover:bg-[#007a3e] text-white font-extrabold text-xs transition shadow-xs flex items-center gap-2 disabled:opacity-40"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Generate Variations</span>
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  type="button"
+                  onClick={handleGenerateVariations}
+                  disabled={potentialCount === 0}
+                  className="px-4 py-2 rounded-xl bg-[#008B47] hover:bg-[#007a3e] text-white font-extrabold text-xs transition shadow-xs flex items-center gap-2 disabled:opacity-40"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Generate Variations</span>
+                </button>
+                {potentialCount === 0 && attributes.length > 0 && (
+                  <p className="text-[10px] text-amber-600 font-semibold flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Add values to your attributes first
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -851,9 +932,9 @@ export function ProductAttributesVariationsEditor({
                     className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold text-xs"
                   >
                     <option value="">Bulk Edit Actions...</option>
-                    <option value="SET_PRICE">Set Price (৳)</option>
-                    <option value="INC_PRICE">Increase Price by (+৳)</option>
-                    <option value="DEC_PRICE">Decrease Price by (-৳)</option>
+                    <option value="SET_PRICE">Set Price (Tk)</option>
+                    <option value="INC_PRICE">Increase Price (+Tk)</option>
+                    <option value="DEC_PRICE">Decrease Price (-Tk)</option>
                     <option value="SET_STOCK">Set Stock Qty</option>
                     <option value="INC_STOCK">Increase Stock (+)</option>
                     <option value="SET_SKU_PREFIX">Set SKU Prefix</option>
@@ -878,7 +959,7 @@ export function ProductAttributesVariationsEditor({
                       onClick={handleApplyBulkEdit}
                       className="px-3 py-1.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition"
                     >
-                      Apply
+                      {selectedVarIds.length > 0 ? `Apply to ${selectedVarIds.length}` : "Apply to All"}
                     </button>
                   )}
                 </div>
@@ -892,8 +973,8 @@ export function ProductAttributesVariationsEditor({
                       <th className="p-3 w-10 text-center"></th>
                       <th className="p-3 w-14 text-center">Image</th>
                       <th className="p-3 min-w-[200px]">Variation / Combination</th>
-                      <th className="p-3 w-28">Price (৳)</th>
-                      <th className="p-3 w-28">Compare (৳)</th>
+                      <th className="p-3 w-28">Price (Tk)</th>
+                      <th className="p-3 w-28">Compare (Tk)</th>
                       <th className="p-3 w-24 text-center">Stock</th>
                       <th className="p-3 w-36">SKU</th>
                       <th className="p-3 w-28">Status</th>

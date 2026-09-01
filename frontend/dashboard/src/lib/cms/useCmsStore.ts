@@ -1,5 +1,4 @@
 "use client";
-// CMS store — module-level singleton + React hook listener pattern
 import { useEffect, useState } from "react";
 import { triggerSoftAction } from "@/store/useSoftLoadingStore";
 import { DEFAULT_HOMEPAGE_SECTIONS, THEME_PRESET_SECTIONS } from "./themePresets";
@@ -18,14 +17,10 @@ export { DEFAULT_HOMEPAGE_SECTIONS };
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// Active seller store slug — set once from the admin layout when the store is known.
-// Included as ?slug= in all CMS API calls so the backend always targets the correct store
-// rather than relying solely on auth-token resolution (which fails for multi-store setups).
 let _storeSlug = "";
 export function initCmsStore(slug: string) {
   if (slug && slug !== _storeSlug) {
     _storeSlug = slug;
-    // Re-sync from DB whenever the store context changes
     set({ dbSynced: false });
   }
 }
@@ -53,7 +48,7 @@ export const DEFAULT_THEME: ThemeSettingsState = {
 const CMS_KEY = "toolera_cms_engine_v3";
 const THEME_KEY = "toolera_theme_v1";
 
-function loadCms() {
+function loadCmsLocal() {
   if (typeof window === "undefined") return { draftSections: DEFAULT_HOMEPAGE_SECTIONS, publishedSections: DEFAULT_HOMEPAGE_SECTIONS };
   try {
     for (const k of [CMS_KEY, "toolera_cms_engine_v2", "toolera_cms_engine"]) {
@@ -70,7 +65,7 @@ function loadCms() {
   return { draftSections: DEFAULT_HOMEPAGE_SECTIONS, publishedSections: DEFAULT_HOMEPAGE_SECTIONS };
 }
 
-function loadTheme(): ThemeSettingsState {
+function loadThemeLocal(): ThemeSettingsState {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const raw = localStorage.getItem(THEME_KEY);
@@ -88,9 +83,13 @@ interface CmsState {
   hasUnsavedChanges: boolean;
   activeDevice: "desktop" | "tablet" | "mobile";
   dbSynced: boolean;
+  isLoading: boolean;
+  isSaving: boolean;
+  isPublishing: boolean;
+  saveError: string | null;
 }
 
-const cms = loadCms();
+const cms = loadCmsLocal();
 const initHero = cms.publishedSections.find((s: CMSSectionItem) => s.type === "hero-slider");
 
 let state: CmsState = {
@@ -99,10 +98,14 @@ let state: CmsState = {
   globalHeroSlides: initHero?.settings?.slides ?? [],
   revisions: [],
   auditLogs: [],
-  theme: loadTheme(),
+  theme: loadThemeLocal(),
   hasUnsavedChanges: false,
   activeDevice: "desktop",
   dbSynced: false,
+  isLoading: false,
+  isSaving: false,
+  isPublishing: false,
+  saveError: null,
 };
 
 const listeners = new Set<() => void>();
@@ -127,64 +130,83 @@ function set(partial: Partial<CmsState>) {
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
+function authHeaders(): Record<string, string> {
+  return { ...(getAuthHeader() as Record<string, string>), "Content-Type": "application/json" };
+}
+
 async function saveThemeToDb(theme: ThemeSettingsState) {
   try {
-    const authHeader = getAuthHeader() as Record<string, string>;
-    if (!authHeader["Authorization"]) return;
-    await fetch(`${API}/api/v1/cms/theme${cmsQs()}`, {
-      method: "PUT",
-      headers: { ...authHeader, "Content-Type": "application/json" },
-      body: JSON.stringify(theme),
-    });
+    const h = authHeaders();
+    if (!h["Authorization"]) return;
+    await fetch(`${API}/api/v1/cms/theme${cmsQs()}`, { method: "PUT", headers: h, body: JSON.stringify(theme) });
   } catch {}
 }
 
-async function saveSectionsToDb(sections: CMSSectionItem[], isPublished = true) {
-  try {
-    const authHeader = getAuthHeader() as Record<string, string>;
-    if (!authHeader["Authorization"]) return;
-    await fetch(`${API}/api/v1/cms/sections${cmsQs()}`, {
-      method: "POST",
-      headers: { ...authHeader, "Content-Type": "application/json" },
-      body: JSON.stringify({ sections, isPublished }),
-    });
-  } catch {}
-}
+// ── DB load ───────────────────────────────────────────────────────────────────
 
-// Load theme + published sections from DB on first mount
 export async function loadFromDb() {
+  set({ isLoading: true });
   try {
-    const authHeader = getAuthHeader() as Record<string, string>;
-    if (!authHeader["Authorization"]) return;
-    const headers = authHeader;
-    const res = await fetch(`${API}/api/v1/cms${cmsQs()}`, { headers });
-    if (!res.ok) return;
-    const json = await res.json();
-    const data = json?.data;
-    if (!data) return;
+    const h = authHeaders();
+    if (!h["Authorization"]) return;
 
-    const dbTheme: Partial<ThemeSettingsState> = data.theme ?? {};
-    const mergedTheme = { ...DEFAULT_THEME, ...dbTheme };
+    // Load theme from the combined config endpoint
+    const themeRes = await fetch(`${API}/api/v1/cms${cmsQs()}`, { headers: h });
+    if (themeRes.ok) {
+      const themeJson = await themeRes.json();
+      const dbTheme: Partial<ThemeSettingsState> = themeJson?.data?.theme ?? {};
+      const mergedTheme = { ...DEFAULT_THEME, ...dbTheme };
+      localStorage.setItem(THEME_KEY, JSON.stringify(mergedTheme));
+      set({ theme: mergedTheme });
+    }
+
+    // Load homepage draft + published sections + revisions from dedicated endpoint
+    const hpRes = await fetch(`${API}/api/v1/cms/homepage${cmsQs()}`, { headers: h });
+    if (!hpRes.ok) {
+      set({ dbSynced: true, isLoading: false });
+      return;
+    }
+    const hpJson = await hpRes.json();
+    const data = hpJson?.data;
+    if (!data) { set({ dbSynced: true, isLoading: false }); return; }
+
+    const draftSections: CMSSectionItem[] = data.draftSections?.length > 0
+      ? data.draftSections
+      : state.draftSections;
     const publishedSections: CMSSectionItem[] = data.publishedSections?.length > 0
       ? data.publishedSections
       : state.publishedSections;
 
-    // Save to localStorage cache
-    localStorage.setItem(THEME_KEY, JSON.stringify(mergedTheme));
-    localStorage.setItem(CMS_KEY, JSON.stringify({ state: { draftSections: publishedSections, publishedSections } }));
+    const dbRevisions: CMSPageRevision[] = (data.revisions || []).map((r: any) => ({
+      id: r.id,
+      pageId: "homepage",
+      version: r.version,
+      title: r.title,
+      sectionsSnapshot: r.sectionsSnapshot || [],
+      isPublished: r.isPublished,
+      publishedAt: r.publishedAt ?? null,
+      createdBy: r.createdBy,
+      notes: r.notes ?? null,
+      createdAt: r.createdAt,
+    }));
 
-    const hero = publishedSections.find((s: CMSSectionItem) => s.type === "hero-slider");
+    localStorage.setItem(CMS_KEY, JSON.stringify({ state: { draftSections, publishedSections } }));
+
+    const hero = draftSections.find((s: CMSSectionItem) => s.type === "hero-slider");
     set({
-      theme: mergedTheme,
+      draftSections,
       publishedSections,
-      draftSections: publishedSections,
       globalHeroSlides: hero?.settings?.slides ?? state.globalHeroSlides,
+      revisions: dbRevisions,
       dbSynced: true,
+      isLoading: false,
     });
-  } catch {}
+  } catch {
+    set({ dbSynced: true, isLoading: false });
+  }
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
+// ── Local state mutations ─────────────────────────────────────────────────────
 
 function setDraftSections(sections: CMSSectionItem[]) {
   set({ draftSections: sections, hasUnsavedChanges: true });
@@ -236,64 +258,6 @@ function addSectionFromLibrary(type: string) {
   setDraftSections([...state.draftSections, newSection]);
 }
 
-function saveDraft(author = "Admin", notes?: string) {
-  triggerSoftAction("Saving draft...", 600);
-  const rev: CMSPageRevision = {
-    id: crypto.randomUUID(),
-    pageId: "homepage",
-    version: state.revisions.length + 1,
-    title: `Draft v${state.revisions.length + 1}`,
-    sectionsSnapshot: state.draftSections,
-    themeSnapshot: state.theme,
-    isPublished: false,
-    createdBy: author,
-    notes: notes ?? null,
-    createdAt: new Date().toISOString(),
-  };
-  set({ revisions: [rev, ...state.revisions], hasUnsavedChanges: false });
-  saveCmsLocal();
-  saveSectionsToDb(state.draftSections, false);
-}
-
-function publishDraft(author = "Admin", notes?: string) {
-  triggerSoftAction("Publishing homepage...", 800);
-  const published = state.draftSections;
-  set({ publishedSections: published, hasUnsavedChanges: false });
-  saveCmsLocal();
-  addAuditLog("PUBLISH", "homepage", "homepage", { sectionsCount: published.length, author, notes });
-  saveSectionsToDb(published, true);
-}
-
-function rollbackToRevision(revisionId: string, author = "Admin") {
-  const rev = state.revisions.find(r => r.id === revisionId);
-  if (!rev) return;
-  set({ draftSections: rev.sectionsSnapshot, publishedSections: rev.sectionsSnapshot, hasUnsavedChanges: false });
-  saveCmsLocal();
-  addAuditLog("ROLLBACK", "homepage", revisionId, { author });
-}
-
-function updateTheme(newTheme: Partial<ThemeSettingsState>, author = "Admin") {
-  const merged = { ...state.theme, ...newTheme };
-  set({ theme: merged, hasUnsavedChanges: true });
-  saveThemeLocal();
-  saveThemeToDb(merged);
-}
-
-function switchThemeLayout(layoutId: HomepageThemeLayout, author = "Admin") {
-  const presetSections = THEME_PRESET_SECTIONS[layoutId] || DEFAULT_HOMEPAGE_SECTIONS;
-  const merged = { ...state.theme, homepageLayout: layoutId };
-  set({
-    theme: merged,
-    draftSections: presetSections,
-    publishedSections: presetSections,
-    hasUnsavedChanges: false,
-  });
-  saveCmsLocal();
-  saveThemeLocal();
-  saveThemeToDb(merged);
-  saveSectionsToDb(presetSections, true);
-}
-
 function setActiveDevice(device: "desktop" | "tablet" | "mobile") {
   set({ activeDevice: device });
 }
@@ -311,6 +275,166 @@ function addAuditLog(action: string, entity: string, entityId?: string, metadata
   set({ auditLogs: [log, ...state.auditLogs].slice(0, 100) });
 }
 
+// ── Async API actions ─────────────────────────────────────────────────────────
+
+async function saveDraft(author = "Admin", notes?: string): Promise<void> {
+  if (state.isSaving) return;
+  set({ isSaving: true, saveError: null });
+  triggerSoftAction("Saving draft...", 600);
+  try {
+    const h = authHeaders();
+    if (h["Authorization"]) {
+      const res = await fetch(`${API}/api/v1/cms/homepage/draft${cmsQs()}`, {
+        method: "POST",
+        headers: h,
+        body: JSON.stringify({ sections: state.draftSections, author, notes }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const rev = json?.revision;
+        if (rev) {
+          const newRev: CMSPageRevision = {
+            id: rev.id,
+            pageId: "homepage",
+            version: rev.version,
+            title: rev.title,
+            sectionsSnapshot: state.draftSections,
+            isPublished: false,
+            createdBy: rev.createdBy,
+            notes: rev.notes ?? null,
+            createdAt: rev.createdAt,
+          };
+          set({ revisions: [newRev, ...state.revisions], hasUnsavedChanges: false });
+        } else {
+          set({ hasUnsavedChanges: false });
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        set({ saveError: err?.message || "Failed to save draft" });
+        throw new Error(err?.message || "Failed to save draft");
+      }
+    }
+    saveCmsLocal();
+  } finally {
+    set({ isSaving: false });
+  }
+}
+
+async function publishDraft(author = "Admin", notes?: string): Promise<void> {
+  if (state.isPublishing) return;
+  set({ isPublishing: true, saveError: null });
+  triggerSoftAction("Publishing homepage...", 800);
+  const published = state.draftSections;
+  try {
+    const h = authHeaders();
+    if (h["Authorization"]) {
+      const res = await fetch(`${API}/api/v1/cms/homepage/publish${cmsQs()}`, {
+        method: "POST",
+        headers: h,
+        body: JSON.stringify({ sections: published, author, notes }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const rev = json?.revision;
+        if (rev) {
+          const newRev: CMSPageRevision = {
+            id: rev.id,
+            pageId: "homepage",
+            version: rev.version,
+            title: rev.title,
+            sectionsSnapshot: published,
+            isPublished: true,
+            publishedAt: rev.publishedAt,
+            createdBy: rev.createdBy,
+            notes: rev.notes ?? null,
+            createdAt: rev.createdAt,
+          };
+          set({ revisions: [newRev, ...state.revisions], publishedSections: published, hasUnsavedChanges: false });
+        } else {
+          set({ publishedSections: published, hasUnsavedChanges: false });
+        }
+        addAuditLog("PUBLISH", "homepage", "homepage", { sectionsCount: published.length, author, notes });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        set({ saveError: err?.message || "Failed to publish" });
+        throw new Error(err?.message || "Failed to publish");
+      }
+    } else {
+      set({ publishedSections: published, hasUnsavedChanges: false });
+    }
+    saveCmsLocal();
+  } finally {
+    set({ isPublishing: false });
+  }
+}
+
+async function rollbackToRevision(revisionId: string, author = "Admin"): Promise<void> {
+  const rev = state.revisions.find(r => r.id === revisionId);
+  if (!rev) return;
+
+  set({ isPublishing: true, saveError: null });
+  try {
+    const h = authHeaders();
+    if (h["Authorization"]) {
+      const res = await fetch(`${API}/api/v1/cms/homepage/revisions/${revisionId}/restore${cmsQs()}`, {
+        method: "POST",
+        headers: h,
+        body: JSON.stringify({ author }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const newRevData = json?.revision;
+        const sections = rev.sectionsSnapshot;
+        const newRev: CMSPageRevision = {
+          id: newRevData?.id ?? crypto.randomUUID(),
+          pageId: "homepage",
+          version: newRevData?.version ?? state.revisions.length + 1,
+          title: newRevData?.title ?? `Restored from v${rev.version}`,
+          sectionsSnapshot: sections,
+          isPublished: true,
+          createdBy: author,
+          notes: `Restored from revision v${rev.version}`,
+          createdAt: new Date().toISOString(),
+        };
+        set({
+          draftSections: sections,
+          publishedSections: sections,
+          revisions: [newRev, ...state.revisions],
+          hasUnsavedChanges: false,
+        });
+        saveCmsLocal();
+        addAuditLog("ROLLBACK", "homepage", revisionId, { author });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        set({ saveError: err?.message || "Failed to restore revision" });
+        throw new Error(err?.message || "Failed to restore revision");
+      }
+    } else {
+      // Offline fallback
+      set({ draftSections: rev.sectionsSnapshot, publishedSections: rev.sectionsSnapshot, hasUnsavedChanges: false });
+      saveCmsLocal();
+    }
+  } finally {
+    set({ isPublishing: false });
+  }
+}
+
+function updateTheme(newTheme: Partial<ThemeSettingsState>) {
+  const merged = { ...state.theme, ...newTheme };
+  set({ theme: merged, hasUnsavedChanges: true });
+  saveThemeLocal();
+  saveThemeToDb(merged);
+}
+
+function switchThemeLayout(layoutId: HomepageThemeLayout) {
+  const presetSections = THEME_PRESET_SECTIONS[layoutId] || DEFAULT_HOMEPAGE_SECTIONS;
+  const merged = { ...state.theme, homepageLayout: layoutId };
+  set({ theme: merged, draftSections: presetSections, publishedSections: presetSections, hasUnsavedChanges: false });
+  saveCmsLocal();
+  saveThemeLocal();
+  saveThemeToDb(merged);
+}
+
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useCmsStore() {
@@ -319,12 +443,7 @@ export function useCmsStore() {
   useEffect(() => {
     const handler = () => setSnap({ ...state });
     listeners.add(handler);
-
-    // Load from DB on first mount (only once per session)
-    if (!state.dbSynced) {
-      loadFromDb();
-    }
-
+    if (!state.dbSynced) { loadFromDb(); }
     return () => { listeners.delete(handler); };
   }, []);
 
@@ -348,6 +467,5 @@ export function useCmsStore() {
   };
 }
 
-// Legacy static access
 useCmsStore.setState = (partial: Partial<CmsState>) => { set(partial); saveCmsLocal(); saveThemeLocal(); };
 useCmsStore.getState = () => state;

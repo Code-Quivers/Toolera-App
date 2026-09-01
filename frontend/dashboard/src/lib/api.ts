@@ -1,5 +1,5 @@
 // Central API client for dashboard
-import { getAuthHeader } from "@/lib/auth";
+import { getAuthHeader, clearAdminToken } from "@/lib/auth";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -26,6 +26,13 @@ export async function apiFetch<T = unknown>(
   };
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
   const json = await res.json();
+  if (res.status === 401) {
+    clearAdminToken();
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+    throw new Error("Session expired. Please log in again.");
+  }
   if (!res.ok) throw new Error(json?.message || `API error ${res.status}`);
   return (json?.data ?? json) as T;
 }
@@ -78,6 +85,10 @@ export const api = {
   uploadMedia: (form: FormData) => {
     const headers = getAuthHeader();
     return fetch(`${BASE}/api/v1/upload/single`, { method: "POST", headers, body: form }).then(r => r.json());
+  },
+  uploadMultipleMedia: (form: FormData) => {
+    const headers = getAuthHeader();
+    return fetch(`${BASE}/api/v1/upload/multiple`, { method: "POST", headers, body: form }).then(r => r.json());
   },
   deleteMedia: (id: string) => apiFetch<void>(`/api/v1/upload/media/${id}`, { method: "DELETE" }),
 
