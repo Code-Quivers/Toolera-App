@@ -44,17 +44,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// ── Business-service proxy (must come before body parsers so multipart/json
-//    bodies are forwarded untouched) ────────────────────────────────────────
-const businessProxy = createProxyMiddleware({
-  target: BUSINESS_URL,
-  changeOrigin: true,
-  on: {
-    error: (err, _req, res: any) => {
-      res.status(502).json({ success: false, message: 'Business service unavailable.' });
-    },
-  },
-});
+// Business-service proxy is defined inline below (must come before body
+// parsers so multipart/json bodies are forwarded untouched).
 
 const BUSINESS_PREFIXES = [
   '/api/v1/products',
@@ -73,9 +64,19 @@ const BUSINESS_PREFIXES = [
   '/api/v1/stock-logs',
 ];
 
-for (const prefix of BUSINESS_PREFIXES) {
-  app.use(prefix, businessProxy);
-}
+// Mount at root with pathFilter so the full path (including prefix) is
+// forwarded intact to the business service — app.use(prefix, proxy) would
+// strip the prefix from req.url before proxying.
+app.use(createProxyMiddleware({
+  target: BUSINESS_URL,
+  changeOrigin: true,
+  pathFilter: BUSINESS_PREFIXES,
+  on: {
+    error: (err, _req, res: any) => {
+      res.status(502).json({ success: false, message: 'Business service unavailable.' });
+    },
+  },
+}));
 
 // ── Own routes (body parsers apply here) ──────────────────────────────────
 app.use(express.json({ limit: '10mb' }));

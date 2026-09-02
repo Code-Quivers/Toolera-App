@@ -67,6 +67,7 @@ export default function AttributesAdminPage() {
   const [valColorHex, setValColorHex] = useState("#0f172a");
   const [valImageUrl, setValImageUrl] = useState("");
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [valError, setValError] = useState<string | null>(null);
   const [editingValId, setEditingValId] = useState<string | null>(null);
   const [editingValData, setEditingValData] = useState<{ name: string; slug: string; colorHex?: string; imageUrl?: string }>({ name: "", slug: "" });
 
@@ -130,6 +131,7 @@ export default function AttributesAdminPage() {
   const handleAddValue = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentAttr || !valName.trim()) return;
+    setValError(null);
     try {
       await addAttributeValue(currentAttr.id, {
         name: valName.trim(),
@@ -141,8 +143,13 @@ export default function AttributesAdminPage() {
       setValSlug("");
       setValImageUrl("");
       setValColorHex("#0f172a");
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      const msg: string = err?.message ?? "Failed to add value";
+      if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
+        setValError(`"${valName.trim()}" already exists in this attribute. Use a different name.`);
+      } else {
+        setValError(msg);
+      }
     }
   };
 
@@ -415,7 +422,7 @@ export default function AttributesAdminPage() {
                     Manage Values: <span className="text-[#008B47]">{currentAttr.name}</span>
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Type: {TYPE_META[currentAttr.type]?.label} ({currentAttr.values.length} configured)
+                    Type: {TYPE_META[currentAttr.type]?.label} ({(currentAttr.values ?? []).length} configured)
                   </p>
                 </div>
               </div>
@@ -448,6 +455,7 @@ export default function AttributesAdminPage() {
                       onChange={(e) => {
                         setValName(e.target.value);
                         setValSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-"));
+                        if (valError) setValError(null);
                       }}
                       className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 font-semibold focus:outline-none focus:border-[#008B47]"
                     />
@@ -516,6 +524,13 @@ export default function AttributesAdminPage() {
                   </div>
                 )}
 
+                {valError && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-semibold">
+                    <span>⚠</span>
+                    <span>{valError}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
@@ -531,16 +546,16 @@ export default function AttributesAdminPage() {
               {/* Existing Values List */}
               <div className="space-y-2">
                 <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center justify-between">
-                  <span>Existing Values ({currentAttr.values.length})</span>
+                  <span>Existing Values ({(currentAttr.values ?? []).length})</span>
                 </div>
 
-                {currentAttr.values.length === 0 ? (
+                {(currentAttr.values ?? []).length === 0 ? (
                   <div className="text-center py-6 text-slate-400 italic">
                     No values added yet. Add a value above.
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 overflow-hidden bg-white">
-                    {currentAttr.values.map((v) => {
+                    {(currentAttr.values ?? []).map((v) => {
                       const isEditing = editingValId === v.id;
 
                       if (isEditing) {
