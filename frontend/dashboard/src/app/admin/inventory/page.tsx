@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useProductStore, ExtendedProduct } from "@/store/useProductStore";
 import { useStockLogStore, StockLogType } from "@/store/useStockLogStore";
@@ -45,7 +44,8 @@ export default function AdminInventoryPage() {
   // Stock Adjustment Modal
   const [adjustingProduct, setAdjustingProduct] = useState<ExtendedProduct | null>(null);
   const [adjustQty, setAdjustQty] = useState<number>(0);
-  const [adjustReason, setAdjustReason] = useState<string>("RESTOCK");
+  const [adjustReason, setAdjustReason] = useState<string>("Supplier Restock");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Wastage / Damage Write-Off Modal
   const [wastageModalOpen, setWastageModalOpen] = useState(false);
@@ -98,33 +98,47 @@ export default function AdminInventoryPage() {
   };
 
   // Stock Adjustment Save Modal
-  const handleSaveAdjustment = (e: React.FormEvent) => {
+  const handleSaveAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adjustingProduct) return;
+    if (!adjustingProduct || isSaving) return;
 
     const oldStock = adjustingProduct.stock;
-    const newStock = Math.max(0, oldStock + adjustQty);
+    const isAuditCount = adjustReason === "Physical Audit Count";
+    // Physical Audit Count sets stock to an absolute value; others add/subtract
+    const newStock = isAuditCount ? Math.max(0, adjustQty) : Math.max(0, oldStock + adjustQty);
+    const actualDelta = isAuditCount ? newStock - oldStock : adjustQty;
+    const productTitle = adjustingProduct.title;
 
-    quickEditProduct(adjustingProduct.id, {
-      stock: newStock,
-      lowStockThreshold: adjustingProduct.lowStockThreshold || 5,
-    });
+    setIsSaving(true);
+    try {
+      await quickEditProduct(adjustingProduct.id, {
+        stock: newStock,
+        lowStockThreshold: adjustingProduct.lowStockThreshold || 5,
+      });
 
-    addLog({
-      productId: adjustingProduct.id,
-      productTitle: adjustingProduct.title,
-      sku: adjustingProduct.sku,
-      previousStock: oldStock,
-      newStock,
-      delta: adjustQty,
-      type: adjustQty > 0 ? "RESTOCK" : "MANUAL",
-      note: `Manual adjustment (${adjustReason})`,
-      actor: "Admin",
-    });
+      await addLog({
+        productId: adjustingProduct.id,
+        productTitle,
+        sku: adjustingProduct.sku,
+        previousStock: oldStock,
+        newStock,
+        delta: actualDelta,
+        qty: Math.abs(actualDelta),
+        type: adjustReason,
+        note: isAuditCount
+          ? `Physical count set stock to ${newStock} units`
+          : `${adjustReason}: ${actualDelta > 0 ? "+" : ""}${actualDelta} units`,
+        actor: "Admin",
+      });
 
-    setAdjustingProduct(null);
-    setAdjustQty(0);
-    showNotification(`Successfully updated inventory for "${adjustingProduct.title}" to ${newStock} units!`);
+      setAdjustingProduct(null);
+      setAdjustQty(0);
+      showNotification(`Inventory updated for "${productTitle}" → ${newStock} units. Saved to DB.`);
+    } catch (err: any) {
+      showNotification(`Failed to save: ${err?.message || "Unknown error"}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Record Damage / Wastage Submit
@@ -435,12 +449,11 @@ export default function AdminInventoryPage() {
                       <tr key={p.id} className="hover:bg-slate-50/80 transition">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                              <Image
-                                src={p.images?.[0] || "/assets/placeholder.png"}
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                              <img
+                                src={p.images[0] || "https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=200&q=80"}
                                 alt={p.title}
-                                fill
-                                className="object-cover"
+                                className="w-full h-full object-cover"
                               />
                             </div>
                             <div>
@@ -571,49 +584,50 @@ export default function AdminInventoryPage() {
                   </tr>
                 ) : (
                   filteredLogs.map((l) => {
-                    const isPositive = l.delta > 0;
+                    const ts = l.createdAt || l.timestamp;
+                    const parsedDate = ts ? new Date(ts) : null;
+                    const isAudit = l.type === "Physical Audit Count";
+                    const displayDelta = l.delta ?? (l.qty ?? 0);
+                    const isPositiveDelta = displayDelta > 0;
+                    const badgeColor = isAudit
+                      ? "bg-blue-100 text-blue-800"
+                      : l.type === "DAMAGE" || l.type === "Wastage"
+                      ? "bg-rose-100 text-rose-800"
+                      : l.type === "Supplier Restock" || l.type === "Customer Return" || l.type === "RESTOCK" || l.type === "RETURN"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : isPositiveDelta
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-slate-100 text-slate-700";
+
                     return (
                       <tr key={l.id} className="hover:bg-slate-50/80 transition">
                         <td className="py-3.5 px-4 font-mono text-slate-500 whitespace-nowrap text-[11px]">
-                          {new Date(l.timestamp).toLocaleString("en-GB", {
-                            dateStyle: "short",
-                            timeStyle: "short",
-                          })}
+                          {parsedDate && !isNaN(parsedDate.getTime())
+                            ? parsedDate.toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" })
+                            : "—"}
                         </td>
                         <td className="py-3.5 px-4 font-bold text-slate-900">{l.productTitle}</td>
                         <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                              l.type === "RESTOCK"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : l.type === "SALE"
-                                ? "bg-blue-100 text-blue-800"
-                                : l.type === "DAMAGE"
-                                ? "bg-rose-100 text-rose-800"
-                                : l.type === "RETURN"
-                                ? "bg-purple-100 text-purple-800"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
-                          >
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${badgeColor}`}>
                             {l.type}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-500">
-                          {l.previousStock}
+                          {l.previousStock ?? "—"}
                         </td>
                         <td className="py-3.5 px-4 text-center font-mono font-black">
-                          <span
-                            className={`px-2 py-0.5 rounded-md ${
-                              isPositive
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-rose-50 text-rose-700"
-                            }`}
-                          >
-                            {isPositive ? `+${l.delta}` : l.delta}
-                          </span>
+                          {isAudit ? (
+                            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700">
+                              ={l.newStock ?? l.qty}
+                            </span>
+                          ) : (
+                            <span className={`px-2 py-0.5 rounded-md ${isPositiveDelta ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                              {isPositiveDelta ? `+${Math.abs(displayDelta)}` : `-${Math.abs(displayDelta)}`}
+                            </span>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-center font-mono font-black text-slate-900">
-                          {l.newStock}
+                          {l.newStock ?? "—"}
                         </td>
                         <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
                           {l.note}
@@ -623,7 +637,7 @@ export default function AdminInventoryPage() {
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-slate-500 font-medium">{l.actor}</td>
+                        <td className="py-3.5 px-4 text-slate-500 font-medium">{l.actor ?? "Admin"}</td>
                       </tr>
                     );
                   })
@@ -657,15 +671,20 @@ export default function AdminInventoryPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Quantity to Add / Subtract</label>
+                  <label className="font-bold text-slate-700">
+                    {adjustReason === "Physical Audit Count" ? "Set Stock To (Absolute)" : "Quantity to Add / Subtract"}
+                  </label>
                   <input
                     type="number"
                     required
+                    min={adjustReason === "Physical Audit Count" ? 0 : undefined}
                     value={adjustQty}
                     onChange={(e) => setAdjustQty(Number(e.target.value))}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-bold focus:outline-none focus:border-[#008B47]"
                   />
-                  <span className="text-[10px] text-slate-400">e.g. +50 or -5</span>
+                  <span className="text-[10px] text-slate-400">
+                    {adjustReason === "Physical Audit Count" ? "Enter actual counted stock" : "e.g. +50 or -5"}
+                  </span>
                 </div>
 
                 <div className="space-y-1">
@@ -675,9 +694,9 @@ export default function AdminInventoryPage() {
                     onChange={(e) => setAdjustReason(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-[#008B47]"
                   >
-                    <option value="RESTOCK">Supplier Restock</option>
-                    <option value="MANUAL">Physical Audit Count</option>
-                    <option value="RETURN">Customer Return</option>
+                    <option value="Supplier Restock">Supplier Restock</option>
+                    <option value="Physical Audit Count">Physical Audit Count</option>
+                    <option value="Customer Return">Customer Return</option>
                   </select>
                 </div>
               </div>
@@ -685,7 +704,9 @@ export default function AdminInventoryPage() {
               <div className="p-3 bg-emerald-50 rounded-xl text-emerald-900 text-xs font-semibold flex items-center justify-between">
                 <span>New Resulting Stock:</span>
                 <span className="text-base font-black text-[#008B47]">
-                  {Math.max(0, adjustingProduct.stock + adjustQty)} units
+                  {adjustReason === "Physical Audit Count"
+                    ? Math.max(0, adjustQty)
+                    : Math.max(0, adjustingProduct.stock + adjustQty)} units
                 </span>
               </div>
 
@@ -699,9 +720,16 @@ export default function AdminInventoryPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#008B47] hover:bg-[#007a3e] text-white font-extrabold rounded-xl shadow-xs"
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-[#008B47] hover:bg-[#007a3e] disabled:opacity-60 text-white font-extrabold rounded-xl shadow-xs flex items-center gap-2"
                 >
-                  Save Adjustment
+                  {isSaving && (
+                    <svg className="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                  )}
+                  {isSaving ? "Saving..." : "Save Adjustment"}
                 </button>
               </div>
             </form>
