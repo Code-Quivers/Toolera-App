@@ -192,7 +192,8 @@ export default function AdminNewProductPage() {
         const blob = await fetch(img).then(r => r.blob());
         const form = new FormData();
         form.append("image", blob, `product-${Date.now()}.jpg`);
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/v1/upload/single`, {
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
+        const res = await fetch(`${apiBase}/api/v1/upload/single`, {
           method: "POST",
           headers: { Authorization: `Bearer ${localStorage.getItem("rm_admin_token") || ""}` },
           body: form,

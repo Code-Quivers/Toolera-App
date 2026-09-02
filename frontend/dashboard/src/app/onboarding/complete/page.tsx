@@ -17,7 +17,7 @@ import {
 import { useTenantStore } from "@/store/useTenantStore";
 import { getAuthHeader } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
 const STOREFRONT_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 async function activateTrialSubscription(storeId: string) {

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { getAuthHeader } from "@/lib/auth";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
 
 async function valFetch<T = unknown>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {

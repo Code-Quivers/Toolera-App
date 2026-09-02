@@ -63,6 +63,9 @@ export default function AdminBillingPage() {
     if (typeof window !== "undefined") {
       window.open("https://www.paystation.com.bd/", "_blank");
     }
+    try {
+      localStorage.removeItem("toolera_payment_pending");
+    } catch {}
     markSubscriptionPaid("growth", "MONTHLY");
     setPaymentSuccessMsg(true);
   };

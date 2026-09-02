@@ -9,7 +9,8 @@ export function proxyTo(target: string, pathRewrite?: Record<string, string>) {
       proxyReq: (proxyReq, req: any) => {
         // Express strips the mount prefix from req.url — restore the full path
         if (req.originalUrl) {
-          const parsed = new URL(req.originalUrl, 'http://localhost');
+          const cleanUrl = req.originalUrl.replace(/^\/api\/v1\/api\/v1/, '/api/v1');
+          const parsed = new URL(cleanUrl, 'http://localhost');
           proxyReq.path = parsed.pathname + parsed.search;
         }
         // express.json() consumes the body stream — rewrite it onto the proxy request

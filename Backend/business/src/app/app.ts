@@ -24,18 +24,43 @@ const app = express();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 app.use(
   cors({
-    origin: [
-      FRONTEND_URL,
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:5000',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'http://127.0.0.1:5000',
-    ],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const allowed = [
+        FRONTEND_URL,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+        'http://localhost:5000',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+        'http://127.0.0.1:3002',
+        'http://127.0.0.1:5000',
+      ];
+      if (
+        isDev ||
+        allowed.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-store-id',
+      'x-internal-key',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
   })
 );
 app.use(express.json({ limit: '10mb' }));

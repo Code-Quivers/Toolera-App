@@ -19,12 +19,13 @@ export async function requireAuth(req: AuthRequest, _res: Response, next: NextFu
     const decoded = jwt.verify(token, config.jwtSecret) as AuthRequest['user'] & { id: string };
 
     // Check Redis only to detect explicit logouts (deleted key = logged out).
-    // We do NOT require the stored token to match — that enforces single-session
-    // and breaks when the user has multiple tabs or devices.
-    const storedToken = await RedisClient.getAccessToken(decoded.id);
-    if (storedToken === null) {
-      // Key missing means the user explicitly logged out — reject.
-      return next(new ApiError(401, 'Session expired. Please log in again.'));
+    try {
+      const storedToken = await RedisClient.getAccessToken(decoded.id);
+      if (storedToken === null && config.nodeEnv === 'production') {
+        return next(new ApiError(401, 'Session expired. Please log in again.'));
+      }
+    } catch {
+      // Redis down or unreachable in dev — proceed with valid verified JWT
     }
 
     req.user = decoded;

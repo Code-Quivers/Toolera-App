@@ -27,7 +27,42 @@ import attributeRoutes from './modules/attributes/attributes.route';
 const app = express();
 
 // Global middlewares
-app.use(cors({ origin: config.corsOrigins, credentials: true }));
+const isDev = config.nodeEnv !== 'production';
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        isDev ||
+        config.corsOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-store-id',
+      'x-internal-key',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
+  })
+);
+
+// Normalize accidental duplicate /api/v1/api/v1 prefix from client config
+app.use((req, _res, next) => {
+  if (req.url.startsWith('/api/v1/api/v1')) {
+    req.url = req.url.replace('/api/v1/api/v1', '/api/v1');
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);

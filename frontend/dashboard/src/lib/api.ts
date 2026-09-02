@@ -1,7 +1,7 @@
 // Central API client for dashboard
 import { getAuthHeader, clearAdminToken } from "@/lib/auth";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
 
 // Active store slug — set by the admin layout when the store is known.
 // Appended as ?storeSlug= to product/category/order reads so the business

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Sparkles, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
 
 interface Plan {
   id: string;
@@ -44,6 +44,53 @@ function PlanSkeleton() {
   );
 }
 
+const DEFAULT_PLANS: Plan[] = [
+  {
+    id: "plan-trial-30",
+    slug: "free-trial",
+    name: "30-Day Free Trial",
+    description: "30-day free trial — full access to all features and routes",
+    badge: "30 DAYS FREE",
+    priceMonthly: 0,
+    priceYearly: 0,
+    trialDays: 30,
+    maxProducts: 1000,
+    maxOrdersPerMonth: 5000,
+    maxStaffMembers: 10,
+    features: [
+      "All routes & features included",
+      "Website CMS & Theme Customizer",
+      "Catalog, Categories & Variations",
+      "Customer Orders & Anti-Fraud Engine",
+      "Courier Logistics (Steadfast/Pathao)",
+      "SMS Gateway Notifications",
+      "Financial Analytics & P&L Reports",
+      "Priority 24/7 Support",
+    ],
+  },
+  {
+    id: "plan-pro",
+    slug: "pro",
+    name: "Growth Pro",
+    description: "Professional plan for scaling e-commerce merchants",
+    badge: "MOST POPULAR",
+    priceMonthly: 999,
+    priceYearly: 9990,
+    trialDays: 0,
+    maxProducts: 10000,
+    maxOrdersPerMonth: 99999,
+    maxStaffMembers: 25,
+    features: [
+      "All routes & features included",
+      "Unlimited products & orders",
+      "PayStation payment gateway",
+      "Custom domain with free SSL",
+      "Courier & SMS auto-dispatch",
+      "VIP Dedicated Support",
+    ],
+  },
+];
+
 export default function OnboardingPlanPage() {
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">("MONTHLY");
@@ -55,9 +102,15 @@ export default function OnboardingPlanPage() {
       .then((r) => r.json())
       .then((json) => {
         const data: Plan[] = json?.data ?? [];
-        setPlans(data);
+        if (data.length > 0) {
+          setPlans(data);
+        } else {
+          setPlans(DEFAULT_PLANS);
+        }
       })
-      .catch(() => {})
+      .catch(() => {
+        setPlans(DEFAULT_PLANS);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -70,6 +123,9 @@ export default function OnboardingPlanPage() {
   };
 
   const handleSkipPayment = () => {
+    try {
+      localStorage.setItem("toolera_payment_pending", "true");
+    } catch {}
     router.push("/admin");
   };
 

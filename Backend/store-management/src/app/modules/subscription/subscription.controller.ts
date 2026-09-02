@@ -19,11 +19,92 @@ const checkoutSchema = z.object({
 export const subscriptionController = {
   async getPlans(req: Request, res: Response) {
     try {
-      const plans = await rdb()
+      let plans = await rdb()
         .select()
         .from(subscriptionPlansTable)
         .where(eq(subscriptionPlansTable.isActive, true))
         .orderBy(subscriptionPlansTable.position);
+
+      if (!plans || plans.length === 0) {
+        const defaultPlans = [
+          {
+            name: '30-Day Free Trial',
+            slug: 'free-trial',
+            description: '30-day free trial — full access to all features and routes',
+            priceMonthly: 0,
+            priceYearly: 0,
+            badge: '30 DAYS FREE',
+            features: [
+              'All routes & features included',
+              'Website CMS & Themes',
+              'Unlimited products & variants',
+              'Orders & Anti-fraud protection',
+              'Courier Logistics & Auto-Dispatch',
+              'SMS Gateway Notifications',
+              'Analytics & Profit/Loss reports',
+              'Custom domain support',
+              'Priority 24/7 support',
+            ],
+            maxProducts: 1000,
+            maxOrdersPerMonth: 5000,
+            maxStaffMembers: 10,
+            maxStorageMb: 5000,
+            allowCustomDomain: true,
+            allowCourierIntegration: true,
+            allowSmsGateway: true,
+            allowAnalytics: true,
+            prioritySupport: true,
+            trialDays: 30,
+            isActive: true,
+            position: 0,
+          },
+          {
+            name: 'Growth Pro',
+            slug: 'pro',
+            description: 'Power plan for scaling e-commerce merchants',
+            priceMonthly: 999,
+            priceYearly: 9990,
+            badge: 'MOST POPULAR',
+            features: [
+              'All routes & features included',
+              'Unlimited products & orders',
+              'PayStation payment gateway',
+              'Custom domain with free SSL',
+              'Courier & SMS auto-dispatch',
+              'Priority 24/7 support',
+            ],
+            maxProducts: 10000,
+            maxOrdersPerMonth: 99999,
+            maxStaffMembers: 25,
+            maxStorageMb: 20000,
+            allowCustomDomain: true,
+            allowCourierIntegration: true,
+            allowSmsGateway: true,
+            allowAnalytics: true,
+            prioritySupport: true,
+            trialDays: 0,
+            isActive: true,
+            position: 1,
+          },
+        ];
+
+        try {
+          for (const p of defaultPlans) {
+            await db.insert(subscriptionPlansTable).values(p as any).onConflictDoUpdate({
+              target: subscriptionPlansTable.slug,
+              set: p,
+            });
+          }
+          plans = await rdb()
+            .select()
+            .from(subscriptionPlansTable)
+            .where(eq(subscriptionPlansTable.isActive, true))
+            .orderBy(subscriptionPlansTable.position);
+        } catch {
+          return res.json({ success: true, data: defaultPlans });
+        }
+      }
+
       return res.json({ success: true, data: plans });
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });

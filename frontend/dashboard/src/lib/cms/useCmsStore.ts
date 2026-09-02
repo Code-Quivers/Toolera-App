@@ -15,7 +15,7 @@ import { getAuthHeader } from "@/lib/auth";
 
 export { DEFAULT_HOMEPAGE_SECTIONS };
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
 
 let _storeSlug = "";
 export function initCmsStore(slug: string) {

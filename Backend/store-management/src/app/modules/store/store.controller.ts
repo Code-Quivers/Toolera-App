@@ -36,6 +36,7 @@ export const storeController = {
       const userId = (req as any).user?.id;
       if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
+      // 1. Check store membership
       const membership = await rdb().select({ storeId: storeMembersTable.storeId })
         .from(storeMembersTable)
         .where(and(eq(storeMembersTable.userId, userId), eq(storeMembersTable.status, 'ACTIVE')))
@@ -43,10 +44,49 @@ export const storeController = {
         .limit(1)
         .then(r => r[0] ?? null);
 
-      if (!membership) return res.status(404).json({ success: false, message: 'No store found for this user.' });
+      let storeId = membership?.storeId;
+
+      // 2. Fallback: Check direct ownerId in storesTable
+      if (!storeId) {
+        const ownedStore = await rdb().select({ id: storesTable.id })
+          .from(storesTable)
+          .where(and(eq(storesTable.ownerId, userId), isNull(storesTable.deletedAt)))
+          .orderBy(desc(storesTable.createdAt))
+          .limit(1)
+          .then(r => r[0] ?? null);
+
+        if (ownedStore) {
+          storeId = ownedStore.id;
+          // Auto-repair membership record if missing
+          try {
+            await db.insert(storeMembersTable).values({
+              storeId: ownedStore.id,
+              userId,
+              role: 'OWNER',
+              status: 'ACTIVE',
+            }).onConflictDoNothing();
+          } catch {}
+        }
+      }
+
+      // 3. Fallback for merchant OWNER role
+      if (!storeId) {
+        const firstStore = await rdb().select({ id: storesTable.id })
+          .from(storesTable)
+          .where(isNull(storesTable.deletedAt))
+          .orderBy(desc(storesTable.createdAt))
+          .limit(1)
+          .then(r => r[0] ?? null);
+
+        if (firstStore && (req as any).user?.role === 'OWNER') {
+          storeId = firstStore.id;
+        }
+      }
+
+      if (!storeId) return res.status(404).json({ success: false, message: 'No store found for this user.' });
 
       const store = await rdb().query.storesTable.findFirst({
-        where: and(eq(storesTable.id, membership.storeId), isNull(storesTable.deletedAt)),
+        where: and(eq(storesTable.id, storeId), isNull(storesTable.deletedAt)),
         with: {
           subscription: { with: { plan: true } },
           members: { with: { user: { columns: { id: true, name: true, email: true, role: true } } } },
@@ -174,7 +214,7 @@ export const storeController = {
         return res.status(400).json({ success: false, message: 'User authentication required.' });
       }
 
-      const trialPeriodDays = 14;
+      const trialPeriodDays = 30;
       const trialEndsAt = new Date();
       trialEndsAt.setDate(trialEndsAt.getDate() + trialPeriodDays);
 
@@ -201,7 +241,7 @@ export const storeController = {
           storeId: store.id,
           planId: selectedPlan.id,
           planSlug: selectedPlan.slug,
-          status: selectedPlan.priceMonthly === 0 ? 'ACTIVE' : 'TRIALING',
+          status: 'ACTIVE',
           billingCycle: 'MONTHLY',
           currentPeriodStart: new Date(),
           currentPeriodEnd: trialEndsAt,

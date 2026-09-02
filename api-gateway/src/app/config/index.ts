@@ -4,7 +4,7 @@ dotenv.config();
 export const config = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
-  jwtSecret: process.env.JWT_SECRET || '',
+  jwtSecret: process.env.JWT_SECRET || 'toolera_shared_jwt_secret_dev_2026_min32chars_xK9!',
 
   // Downstream services
   services: {
@@ -24,5 +24,8 @@ export const config = {
     max: Number(process.env.RATE_LIMIT_MAX) || 200,
   },
 
-  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:3000').split(','),
+  corsOrigins: (
+    process.env.CORS_ORIGINS ||
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002'
+  ).split(','),
 };

@@ -211,6 +211,9 @@ export default function StoreOnboardingWizardPage() {
         currencySymbol: "৳",
         planSlug: "free-trial",
       });
+      try {
+        localStorage.setItem("toolera_payment_pending", "true");
+      } catch {}
       setPaymentPending(true);
       router.push("/admin");
     } catch (err: any) {
@@ -258,7 +261,7 @@ export default function StoreOnboardingWizardPage() {
 
     try {
       // Save created store to tenant store
-      await createStore({
+      const result = await createStore({
         name: storeName.trim(),
         slug: slug.trim().toLowerCase(),
         description: description.trim() || tagline,
@@ -266,6 +269,12 @@ export default function StoreOnboardingWizardPage() {
         currencySymbol: "৳",
         planSlug: "free-trial",
       });
+
+      if (result && !result.success) {
+        setErrorMsg(result.message || "Failed to create store. The store name or slug might already be taken.");
+        setIsLoading(false);
+        return;
+      }
 
       // Save onboarding preferences into localStorage for session continuity
       if (typeof window !== "undefined") {

@@ -28,7 +28,7 @@ function SubscriptionCheckoutContent() {
   const [planData, setPlanData] = useState<{ name: string; monthly: number; yearly: number } | null>(null);
 
   useEffect(() => {
-    const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
     fetch(`${API}/api/v1/subscriptions/plans`)
       .then(r => r.json())
       .then(json => {
@@ -54,7 +54,7 @@ function SubscriptionCheckoutContent() {
 
     try {
       // Record payment activation in backend API or client store
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
       const res = await fetch(`${API}/api/v1/subscriptions/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +72,9 @@ function SubscriptionCheckoutContent() {
       }
 
       // Mark subscription as paid and activate navigation
+      try {
+        localStorage.removeItem("toolera_payment_pending");
+      } catch {}
       markSubscriptionPaid(planSlug, cycle);
       setPaymentPending(false);
 
