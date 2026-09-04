@@ -30,6 +30,8 @@ export const paymentStatusEnum = pgEnum('PaymentStatus', ['PENDING', 'PAID', 'FA
 export const paymentProviderEnum = pgEnum('PaymentProvider', ['COD', 'BKASH', 'NAGAD', 'CARD']);
 export const reviewStatusEnum = pgEnum('ReviewStatus', ['PENDING', 'APPROVED', 'REJECTED']);
 export const discountTypeEnum = pgEnum('DiscountType', ['PERCENTAGE', 'FIXED']);
+export const themeStatusEnum = pgEnum('ThemeStatus', ['DRAFT', 'PUBLISHED', 'ARCHIVED']);
+export const themeAccessTypeEnum = pgEnum('ThemeAccessType', ['FREE', 'PLAN_REQUIRED', 'PAID']);
 
 // ── Tables ─────────────────────────────────────────────────────────────────
 
@@ -245,6 +247,32 @@ export const themeSettingsTable = pgTable('ThemeSettings', {
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
 }, (t) => [
   index('ThemeSettings_storeId_idx').on(t.storeId),
+]);
+
+export const themesTable = pgTable('Theme', {
+  id: text('id').primaryKey().$defaultFn(() => randomUUID()),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  badge: text('badge'),
+  thumbnailUrl: text('thumbnailUrl').notNull().default('/themes/theme-electronics.png'),
+  demoStoreUrl: text('demoStoreUrl'),
+  category: text('category').notNull().default('General'),
+  status: themeStatusEnum('status').notNull().default('DRAFT'),
+  accessType: themeAccessTypeEnum('accessType').notNull().default('FREE'),
+  requiredPlan: text('requiredPlan').default('free-trial'),
+  price: integer('price').notNull().default(0),
+  defaultConfig: jsonb('defaultConfig'),
+  defaultSections: jsonb('defaultSections'),
+  features: jsonb('features'),
+  isActive: boolean('isActive').notNull().default(true),
+  position: integer('position').notNull().default(0),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdateFn(() => new Date()),
+}, (t) => [
+  index('Theme_slug_idx').on(t.slug),
+  index('Theme_status_idx').on(t.status),
+  index('Theme_category_idx').on(t.category),
 ]);
 
 export const headerSettingsTable = pgTable('HeaderSettings', {

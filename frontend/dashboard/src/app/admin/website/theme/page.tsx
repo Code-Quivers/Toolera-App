@@ -54,9 +54,28 @@ const FONT_OPTIONS = [
   { label: "Anek Bangla (বাংলা — আধুনিক ডিসপ্লে)", value: "'Anek Bangla', sans-serif", gfName: "Anek+Bangla" },
 ];
 
+import { getAuthHeader } from "@/lib/auth";
+
+const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/api\/v1\/?$/, "");
+
 export default function AdminThemePage() {
   const { theme, updateTheme, switchThemeLayout, revisions, rollbackToRevision } = useCmsStore();
   const [notification, setNotification] = useState<string | null>(null);
+  const [dbThemes, setDbThemes] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [isApplying, setIsApplying] = useState<string | null>(null);
+
+  // Fetch published themes dynamically from backend API
+  useEffect(() => {
+    fetch(`${API}/api/v1/themes`)
+      .then(r => r.json())
+      .then(json => {
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          setDbThemes(json.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Dynamically load Google Font when font changes
   useEffect(() => {
@@ -70,6 +89,7 @@ export default function AdminThemePage() {
     link.href = `https://fonts.googleapis.com/css2?family=${fontOption.gfName}:wght@400;500;600;700;800;900&display=swap`;
     document.head.appendChild(link);
   }, [theme.bodyFont]);
+
   const [previewModalLayout, setPreviewModalLayout] = useState<{
     title: string;
     industry: string;
@@ -239,10 +259,46 @@ export default function AdminThemePage() {
     },
   ];
 
-  const handleSelectThemeLayout = (layoutId: HomepageThemeLayout) => {
+  const displayedThemes = dbThemes.length > 0 ? dbThemes.map(t => ({
+    id: (t.defaultConfig?.homepageLayout || t.slug.toUpperCase().replace(/-/g, '_')) as HomepageThemeLayout,
+    dbId: t.id,
+    title: t.name,
+    industry: t.category || "General",
+    badge: t.badge || (t.accessType === "FREE" ? "Free" : t.requiredPlan ? `${t.requiredPlan.toUpperCase()} Required` : "Premium"),
+    description: t.description || "",
+    features: Array.isArray(t.features) ? t.features : [],
+    accentColor: t.defaultConfig?.primary || "#008B47",
+    image: t.thumbnailUrl || "/themes/theme-electronics.png",
+    demoStoreUrl: t.demoStoreUrl,
+    accessType: t.accessType || "FREE",
+    requiredPlan: t.requiredPlan || "free-trial",
+    price: t.price || 0,
+    category: t.category || "General",
+  })) : themeLayouts;
+
+  const categories = ["All", ...Array.from(new Set(displayedThemes.map((t: any) => t.category || t.industry).filter(Boolean)))];
+
+  const filteredThemes = selectedCategory === "All"
+    ? displayedThemes
+    : displayedThemes.filter((t: any) => (t.category || t.industry)?.toLowerCase() === selectedCategory.toLowerCase());
+
+  const handleSelectThemeLayout = async (layoutId: HomepageThemeLayout, dbId?: string) => {
     switchThemeLayout(layoutId);
-    const selected = themeLayouts.find((l) => l.id === layoutId);
+    const selected = displayedThemes.find((l: any) => l.id === layoutId);
     setNotification(`Homepage Layout switched to "${selected?.title}" and Visual Builder sections loaded!`);
+
+    if (dbId) {
+      setIsApplying(dbId);
+      try {
+        await fetch(`${API}/api/v1/themes/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...getAuthHeader() },
+          body: JSON.stringify({ themeId: dbId }),
+        });
+      } catch {}
+      setIsApplying(null);
+    }
+
     setTimeout(() => setNotification(null), 3500);
   };
 
@@ -330,25 +386,44 @@ export default function AdminThemePage() {
           <div>
             <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
-              <span>Homepage Theme Layouts (Select 1 of 7)</span>
+              <span>Theme Library &amp; Homepage Layouts</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Select an industry template to transform the entire storefront homepage layout instantly, or click preview to inspect full screenshots.
+              Select an industry theme template to transform your entire storefront layout instantly.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-slate-400 font-bold uppercase">Active Theme:</span>
             <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-black text-xs">
-              {themeLayouts.find((l) => l.id === activeLayout)?.title || "Toolera Original"}
+              {displayedThemes.find((l: any) => l.id === activeLayout)?.title || "Toolera Original"}
             </span>
           </div>
         </div>
 
-        {/* 7 Theme Cards Grid */}
+        {/* Category Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {categories.map((cat: string) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${
+                selectedCategory.toLowerCase() === cat.toLowerCase()
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Theme Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {themeLayouts.map((opt) => {
+          {filteredThemes.map((opt: any) => {
             const isSelected = activeLayout === opt.id;
+            const isProcessing = isApplying === opt.dbId;
             return (
               <div
                 key={opt.id}
@@ -393,21 +468,21 @@ export default function AdminThemePage() {
                     <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold uppercase">
                       {opt.badge}
                     </span>
-                    <span className="text-[11px] font-bold text-slate-400">{opt.industry}</span>
+                    <span className="text-[11px] font-bold text-slate-400">{opt.industry || opt.category}</span>
                   </div>
 
                   <div>
                     <h3 className="font-extrabold text-sm text-slate-900 leading-snug">
                       {opt.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
                       {opt.description}
                     </p>
                   </div>
 
                   {/* Feature Bullets */}
                   <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    {opt.features.map((feat, fIdx) => (
+                    {opt.features.slice(0, 3).map((feat: string, fIdx: number) => (
                       <div key={fIdx} className="text-[11px] text-slate-600 flex items-start gap-1.5">
                         <span className="text-emerald-600 font-bold">✓</span>
                         <span className="line-clamp-1">{feat}</span>
@@ -430,15 +505,16 @@ export default function AdminThemePage() {
 
                   <button
                     type="button"
-                    onClick={() => handleSelectThemeLayout(opt.id)}
+                    disabled={isProcessing}
+                    onClick={() => handleSelectThemeLayout(opt.id, opt.dbId)}
                     className={`sm:col-span-8 py-2.5 rounded-2xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-xs ${
                       isSelected
                         ? "bg-emerald-600 text-white"
                         : "bg-slate-950 hover:bg-emerald-600 text-white"
-                    }`}
+                    } ${isProcessing ? "opacity-75 cursor-wait" : ""}`}
                   >
-                    <span>{isSelected ? "Active (Live)" : "Apply This Theme"}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>{isProcessing ? "Applying..." : isSelected ? "Active (Live)" : "Apply This Theme"}</span>
+                    {!isProcessing && <ArrowRight className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>

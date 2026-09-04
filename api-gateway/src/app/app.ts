@@ -23,6 +23,7 @@ import courierRoutes from './modules/courier/courier.route';
 import uploadRoutes from './modules/upload/upload.route';
 import customerRoutes from './modules/customers/customers.route';
 import attributeRoutes from './modules/attributes/attributes.route';
+import themeRoutes from './modules/theme/theme.route';
 
 const app = express();
 
@@ -92,6 +93,8 @@ app.use('/api/v1/admin-finance', adminFinanceRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/audit', auditRoutes);
 app.use('/api/v1/blog-categories', blogCategoryRoutes);
+app.use('/api/v1/themes', themeRoutes);
+app.use('/api/v1/admin/themes', themeRoutes);
 
 // ── Business Service routes ───────────────────────────────────────────
 app.use('/api/v1/products', productRoutes);

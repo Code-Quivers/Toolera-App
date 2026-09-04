@@ -12,6 +12,7 @@ import { subscriptionRouter } from './modules/subscription/subscription.route.js
 import { backupRouter } from './modules/backup/backup.route.js';
 import { internalRouter } from './modules/internal/internal.route.js';
 import { uploadRouter } from './modules/upload/upload.route.js';
+import { themeRoutes, adminThemeRoutes } from './modules/theme/theme.route.js';
 
 dotenv.config();
 
@@ -124,6 +125,8 @@ app.use('/api/v1/subscriptions', subscriptionRouter);
 app.use('/api/v1/backup', backupRouter);
 app.use('/api/v1/internal', internalRouter);
 app.use('/api/v1/upload', uploadRouter);
+app.use('/api/v1/themes', themeRoutes);
+app.use('/api/v1/admin/themes', adminThemeRoutes);
 
 app.use(errorHandler);
 
