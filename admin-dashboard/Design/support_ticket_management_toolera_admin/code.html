@@ -1,0 +1,382 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Toolera - Support Tickets</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0b1c30",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#f5fff7",
+                        "on-tertiary-fixed-variant": "#3e4943",
+                        "success-teal": "#0e9b6d",
+                        "primary-fixed-dim": "#66dca8",
+                        "tertiary-fixed": "#d9e6dd",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#cbdbf5",
+                        "primary": "#006948",
+                        "on-surface-variant": "#3d4a42",
+                        "surface-bright": "#f8f9ff",
+                        "surface-base": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-subtle": "#f8fafc",
+                        "on-primary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#f5fff7",
+                        "tertiary-fixed-dim": "#bdcac1",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "border-light": "#e2e8f0",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "trust-blue": "#0369a1",
+                        "surface-variant": "#d3e4fe",
+                        "inverse-surface": "#213145",
+                        "outline": "#6d7a72",
+                        "secondary-container": "#d5e0f8",
+                        "secondary-fixed": "#d8e3fb",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#111c2d",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#131e19",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#545f73",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "on-primary-fixed-variant": "#005137",
+                        "tertiary-container": "#6b7770",
+                        "inverse-primary": "#66dca8",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "primary-container": "#00855c",
+                        "surface-tint": "#006c4a",
+                        "primary-fixed": "#83f9c3",
+                        "on-secondary-container": "#586377",
+                        "on-primary-fixed": "#002114",
+                        "outline-variant": "#bccac0",
+                        "tertiary": "#535f58",
+                        "on-background": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-padding-mobile": "64px",
+                        "base": "8px",
+                        "section-padding": "120px",
+                        "gutter": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "caption": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Montserrat"],
+                        "label-bold": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 20px; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md h-full flex overflow-hidden antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col w-64 bg-surface-container-lowest border-r border-border-light h-full flex-shrink-0 z-50">
+<div class="px-gutter py-6">
+<h1 class="font-headline-md text-headline-md font-black text-primary flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">build_circle</span>
+                Toolera
+            </h1>
+<p class="font-caption text-caption text-on-surface-variant mt-1">Multi-vendor Panel</p>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="font-label-bold text-label-bold">Sellers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-bold text-label-bold">Business Categories</span>
+</a><a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="font-label-bold text-label-bold">Marketing</span>
+</a>
+
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-label-bold text-label-bold">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-bold text-label-bold">Financials</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg bg-primary-container text-on-primary-container font-bold" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span class="font-label-bold text-label-bold">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-bold text-label-bold">Settings</span>
+</a>
+</div>
+<div class="p-4 border-t border-border-light space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-bold text-label-bold">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-bold text-label-bold">Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full bg-surface-subtle overflow-hidden relative">
+<!-- TopNavBar (Mobile Only) -->
+<header class="md:hidden flex items-center justify-between px-4 h-16 bg-surface-container-lowest border-b border-border-light shadow-sm flex-shrink-0">
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant p-2 -ml-2 rounded-lg hover:bg-surface-container-low active:opacity-80">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-sm font-bold text-primary">Toolera</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-on-surface-variant p-2 rounded-lg hover:bg-surface-container-low active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<img class="w-8 h-8 rounded-full object-cover border border-border-light" data-alt="A small circular profile picture of an administrative user for the Toolera dashboard, featuring a clean, professional, and slightly abstracted illustration style on a light background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgTrkeiZ2n1sz3f5-gbBmXn-YzojH6YSUrfhR2ISW17lZL2Gf0svXBDxXFZA9ghUKwAYsUy7bDdwFGN21kglRyGAHYWFo2128b6MhHOld6gDEzRuPsk6nudzgXxiDTN9ulclWVJ3D0NNl_SLcA84d2_qWcAobg95BC6FFisWxjzkZ_7kWwPTwqR8Lb7MDsfuk7fTRTSiftyX7B3lDImkfLGrCyGi5cVI4a5yc66wH2ZaIYmRmyFnk3lQ">
+</div>
+</header>
+<!-- Top Actions Bar -->
+<div class="hidden md:flex items-center justify-between px-8 h-16 bg-surface-container-lowest border-b border-border-light shadow-sm flex-shrink-0 z-10">
+<div class="flex-1 flex items-center max-w-md">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border border-border-light rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-body-md text-body-md text-on-surface placeholder-outline transition-shadow" placeholder="Search tickets, sellers, or IDs..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface-container-lowest"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-border-light cursor-pointer">
+<div class="text-right">
+<p class="font-label-bold text-label-bold text-on-surface">Admin Profile</p>
+<p class="font-caption text-caption text-on-surface-variant">Super Admin</p>
+</div>
+<img class="w-10 h-10 rounded-full object-cover border border-border-light" data-alt="A small circular profile picture of an administrative user for the Toolera dashboard, featuring a clean, professional, and slightly abstracted illustration style on a light background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAly_KVHBje1-nWXVw2VIR7XuuFHRRdW9ouSRnyeD-feF4wBG_FlEc74h3mRj5RQ_0pJzduwT3F-g1Lj5Ooo_NPAkkUN-iSewlEfnMISZ5QjTJ7O4cSnSm9bcdI_br-htr88PbdR9JqGtfkaEaXGjscxiAQjV47KT63MngN2CDqcYmYHSWcpBERSmoZsc6f5l7YZk_oQ1IDUvgtJeNDmDq_SREX3LgTIp82FKtvNXO-353eJ0P2UfMVg">
+</div>
+</div>
+</div>
+<!-- Two-Pane Layout -->
+<div class="flex-1 flex overflow-hidden">
+<!-- List Pane -->
+<div class="w-full lg:w-[400px] xl:w-[480px] flex flex-col bg-surface-container-lowest border-r border-border-light flex-shrink-0">
+<div class="p-6 border-b border-border-light shrink-0">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-4">Support Tickets</h2>
+<div class="flex gap-2">
+<button class="flex-1 px-4 py-2 bg-primary-container text-on-primary-container font-label-bold text-label-bold rounded-lg transition-colors">
+                            Open (12)
+                        </button>
+<button class="flex-1 px-4 py-2 bg-surface text-on-surface-variant border border-border-light hover:bg-surface-container-low font-label-bold text-label-bold rounded-lg transition-colors">
+                            Assigned to Me
+                        </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+<!-- Ticket Item (Active) -->
+<div class="p-4 rounded-lg bg-surface-container border border-primary/20 shadow-[0_4px_20px_rgba(0,0,0,0.05)] cursor-pointer relative overflow-hidden group transition-all">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-2 pl-2">
+<span class="font-label-bold text-caption text-primary">#TKT-8924</span>
+<span class="font-caption text-caption text-on-surface-variant">10 mins ago</span>
+</div>
+<h3 class="font-label-bold text-body-md text-on-surface mb-1 pl-2 pr-4 truncate group-hover:text-primary transition-colors">Inventory Sync Failing for Dhaka Store</h3>
+<p class="font-body-md text-caption text-on-surface-variant mb-3 pl-2 line-clamp-1">Hi, my recent bulk upload for winter jackets isn't reflecting on the storefront...</p>
+<div class="flex items-center justify-between pl-2">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="A tiny profile picture of a seller named Rahim Store, featuring a simple store icon or generic seller avatar in a light, modern corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDQsaCrcWJ8L2oPzjChtE7bR6-ipaEztx6jGWzpKALjMYazXxX2Z94lU2_d1DLxGNsWouUTIbzjdy6ph_lSyX_1J7-j9fmjhY2P8_H-xBs4l-QhnurT6bdSCtvM7qZ24c0_raYFL2zRl_I-F8E8_Ird4hQct0UMO1o8JHnYSqQBOR8IPQHavPu7hI_VkmVtENDmaVtNm09MoCteH0XhP7X0OHmk4awXF0_mSbnBHfmpcpH47X5-sIYVg">
+<span class="font-caption text-caption text-on-surface">Rahim Store</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-bold text-[10px] tracking-wide">
+                                HIGH PRIORITY
+                            </span>
+</div>
+</div>
+<!-- Ticket Item (Inactive) -->
+<div class="p-4 rounded-lg bg-surface-base border border-border-light hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-bold text-caption text-outline">#TKT-8923</span>
+<span class="font-caption text-caption text-on-surface-variant">2 hrs ago</span>
+</div>
+<h3 class="font-label-bold text-body-md text-on-surface mb-1 pr-4 truncate">Payment Gateway Error on Checkout</h3>
+<p class="font-body-md text-caption text-on-surface-variant mb-3 line-clamp-1">Customers are reporting a 500 error when trying to use bKash...</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-variant flex items-center justify-center text-trust-blue font-label-bold text-caption">S</div>
+<span class="font-caption text-caption text-on-surface">Sylhet Electronics</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-bold text-[10px] tracking-wide">
+                                PENDING
+                            </span>
+</div>
+</div>
+<!-- Ticket Item (Inactive) -->
+<div class="p-4 rounded-lg bg-surface-base border border-border-light hover:border-outline-variant cursor-pointer transition-all">
+<div class="flex justify-between items-start mb-2">
+<span class="font-label-bold text-caption text-outline">#TKT-8920</span>
+<span class="font-caption text-caption text-on-surface-variant">Yesterday</span>
+</div>
+<h3 class="font-label-bold text-body-md text-on-surface mb-1 pr-4 truncate">How to update tax rates for new FY?</h3>
+<p class="font-body-md text-caption text-on-surface-variant mb-3 line-clamp-1">Is there a guide on setting the new VAT rates across all my products...</p>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full object-cover" data-alt="A tiny profile picture of a seller named Amina Boutiques, featuring a simple store icon or generic seller avatar in a light, modern corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYnuX1FbuncPSVKODsVteLfjebZjfzWtO5ExNRKHL4pbTZlMADmqs_RrDlE2dT4ffwn_4yjjQRIvSBA10sNggRazb6MGZ5JIsUntZ3yIZvobyEBOX5c6cW85dyEX5QsssxDbsCPSVArPTy9VqO7Rqr4aVL6s-osrYCiLY71DwV2aOv8YNzj6LFAki_2Jal5-iInpn6NlWgDSv5DKiEFeSAX0vjh251U9bJpkpbc40W50IuWSaOnoXz3g">
+<span class="font-caption text-caption text-on-surface">Amina Boutiques</span>
+</div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-bold text-[10px] tracking-wide">
+                                OPEN
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Detail Pane (Chat Interface) -->
+<div class="hidden lg:flex flex-1 flex-col bg-surface-subtle relative">
+<!-- Detail Header -->
+<div class="px-8 py-6 bg-surface-container-lowest border-b border-border-light flex-shrink-0 flex items-center justify-between">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="font-label-bold text-label-bold text-primary bg-primary-container/20 px-2 py-1 rounded">#TKT-8924</span>
+<span class="inline-flex items-center px-2 py-1 rounded bg-error-container text-on-error-container font-label-bold text-caption">High Priority</span>
+<span class="inline-flex items-center px-2 py-1 rounded bg-surface-variant text-trust-blue font-label-bold text-caption">Open</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Inventory Sync Failing for Dhaka Store</h2>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-border-light bg-surface text-on-surface rounded-lg font-label-bold text-label-bold hover:bg-surface-container-low transition-colors">
+                            Assign to Me
+                        </button>
+<button class="px-4 py-2 bg-success-teal text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-success-teal/90 transition-colors shadow-sm">
+                            Resolve Ticket
+                        </button>
+</div>
+</div>
+<!-- Seller Context Bar -->
+<div class="bg-surface border-b border-border-light px-8 py-3 flex items-center gap-6 flex-shrink-0">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A clear profile picture of a seller named Rahim Store, featuring a professional storefront illustration in a modern, light corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcgnjNSoSKg98N0Za0Q2ShRSMlufdBwdd6gXzRshDJDBHGASMQo0P12EDKZe6gneiCnwCF_5UPAK7l2sfJmtO88Fl0RMrQjgPGpRZdJ_4rBUfUbyQuJBRyefkK4W9tRq7d13lDREL6iLqiKE1oOspLLEm5hB6GYAhtCII8yO0rnLd4E_CGGjhbsfcY4bU9W2DnWufGFh6WQknxxI5DwZNVLOiRMz6WdFrjFDF2jGvGc2ZkVWgj8JZ-lg">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface">Rahim Store</p>
+<p class="font-caption text-caption text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span> Dhaka, BD
+                            </p>
+</div>
+</div>
+<div class="h-8 w-px bg-border-light"></div>
+<div>
+<p class="font-caption text-caption text-on-surface-variant">Plan</p>
+<p class="font-label-bold text-label-bold text-on-surface">Enterprise</p>
+</div>
+<div class="h-8 w-px bg-border-light"></div>
+<div>
+<p class="font-caption text-caption text-on-surface-variant">Lifetime Value</p>
+<p class="font-label-bold text-label-bold text-on-surface">৳4.2M</p>
+</div>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
+<!-- Seller Message -->
+<div class="flex gap-4 max-w-3xl">
+<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" data-alt="A small profile picture of a seller named Rahim Store." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAvOCVvuLJMNwnYbijQYcQXCqwHBxLNcBpmeX6I_kHLKCptbtlTdeD2YG5IZ7n3m1RIzp8XVt8BexJHIlOgzaixUZweoWgVMshw5kAo1NmM9g5DQPNQnAm6oAwDGYV9HXuMHJORiznyUUdCtedWtqWm9Gzn9wlwyby9XI6n47uPDG4QjvFRJzOYxh5G2lzxbCDL_ppHNKJw9c4WcaZ9W1OSmOTVpTVNfHLA9kZxLId8MjQQqwJxzY_dw">
+<div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="font-label-bold text-label-bold text-on-surface">Rahim Store</span>
+<span class="font-caption text-caption text-outline">Today, 10:23 AM</span>
+</div>
+<div class="bg-surface-container-lowest border border-border-light rounded-2xl rounded-tl-none p-4 shadow-sm text-on-surface font-body-md text-body-md">
+<p class="">Hi Support Team,</p>
+<p class="mt-2">I tried uploading my new winter inventory using the bulk CSV tool, but it keeps throwing an error on row 45 and failing the entire sync. I've attached the file. We need this up before the weekend sale. Please advise.</p>
+<div class="mt-4 flex items-center gap-3 p-3 bg-surface border border-border-light rounded-lg w-fit">
+<div class="p-2 bg-surface-variant rounded text-trust-blue">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-label-bold text-caption text-on-surface">winter_inventory_v2.csv</p>
+<p class="font-caption text-caption text-on-surface-variant">245 KB</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- System Event -->
+<div class="flex items-center justify-center gap-4 py-2">
+<div class="h-px bg-border-light flex-1"></div>
+<span class="font-caption text-caption text-outline px-2 bg-surface-subtle">Ticket assigned to You by Auto-Router</span>
+<div class="h-px bg-border-light flex-1"></div>
+</div>
+</div>
+<!-- Reply Area -->
+<div class="p-6 bg-surface-container-lowest border-t border-border-light flex-shrink-0">
+<div class="border border-border-light rounded-xl bg-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all overflow-hidden">
+<div class="px-4 py-2 border-b border-border-light bg-surface-container-lowest flex gap-2">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_bold</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_italic</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors"><span class="material-symbols-outlined text-[20px]">link</span></button>
+<div class="w-px h-6 bg-border-light mx-1 self-center"></div>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors"><span class="material-symbols-outlined text-[20px]">attach_file</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-container-low rounded transition-colors"><span class="material-symbols-outlined text-[20px]">image</span></button>
+</div>
+<textarea class="w-full bg-transparent border-none focus:ring-0 resize-none p-4 font-body-md text-body-md text-on-surface placeholder-outline" placeholder="Type your response... (Internal notes can be toggled below)" rows="3"></textarea>
+<div class="px-4 py-3 bg-surface-container-lowest border-t border-border-light flex justify-between items-center">
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded border-outline text-primary focus:ring-primary bg-surface" type="checkbox">
+<span class="font-caption text-caption text-on-surface-variant">Internal Note (Hidden from Seller)</span>
+</label>
+<button class="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+                                Send Reply
+                                <span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>
