@@ -1,0 +1,436 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Toolera Admin - Subscriptions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0b1c30",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#f5fff7",
+                        "on-tertiary-fixed-variant": "#3e4943",
+                        "success-teal": "#0e9b6d",
+                        "primary-fixed-dim": "#66dca8",
+                        "tertiary-fixed": "#d9e6dd",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#cbdbf5",
+                        "primary": "#006948",
+                        "on-surface-variant": "#3d4a42",
+                        "surface-bright": "#f8f9ff",
+                        "surface-base": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-subtle": "#f8fafc",
+                        "on-primary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#f5fff7",
+                        "tertiary-fixed-dim": "#bdcac1",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "border-light": "#e2e8f0",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "trust-blue": "#0369a1",
+                        "surface-variant": "#d3e4fe",
+                        "inverse-surface": "#213145",
+                        "outline": "#6d7a72",
+                        "secondary-container": "#d5e0f8",
+                        "secondary-fixed": "#d8e3fb",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#111c2d",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#131e19",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#545f73",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "on-primary-fixed-variant": "#005137",
+                        "tertiary-container": "#6b7770",
+                        "inverse-primary": "#66dca8",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "primary-container": "#00855c",
+                        "surface-tint": "#006c4a",
+                        "primary-fixed": "#83f9c3",
+                        "on-secondary-container": "#586377",
+                        "on-primary-fixed": "#002114",
+                        "outline-variant": "#bccac0",
+                        "tertiary": "#535f58",
+                        "on-background": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-padding-mobile": "64px",
+                        "base": "8px",
+                        "section-padding": "120px",
+                        "gutter": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "caption": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Montserrat"],
+                        "label-bold": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Montserrat', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-0 z-40 flex items-center justify-between px-gutter h-16 bg-surface-container-lowest border-b border-border-light shadow-sm hidden md:flex md:left-64">
+<div class="flex items-center">
+<div class="relative w-96 hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border border-border-light rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:border-success-teal focus:ring-1 focus:ring-success-teal focus:shadow-[0_0_0_3px_rgba(14,155,109,0.1)] transition-all" placeholder="Search..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Translate" class="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="translate">translate</span>
+</button>
+<div class="flex items-center gap-3 ml-2 border-l border-border-light pl-4 cursor-pointer hover:opacity-80 transition-opacity">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-bold text-label-bold overflow-hidden">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="A professional headshot of an administrative user in a clean, brightly lit corporate environment. The person is looking slightly off-camera with a confident but approachable expression. The lighting is soft and even, typical of high-end SaaS application avatars. The background is a very subtle gradient of light grays." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnP_Xbf8QuRK7MEYPc6ffv0YS9T7m4CbYm9cvzjUTvSYGHekR3ss5asD7g9thWKSmTuAmKYgjHq9G3mwPsARF_3DZD2wWGM7z8HEifl3UnScKbaNO72kGxEgnkLLkHP6La8gJpxOu2RUtzA8RYZmCJ7-QjD0FXLMrthCd8qAgRaIhOrGJp4bKlPWnVrBcrZ6p8x1BkYCq68daYgBbstwJ5wS5Lm37j05H0rtFtud2Lpr2tdp4CV2P19g">
+</div>
+<span class="font-label-bold text-label-bold text-primary hidden lg:block">Admin Profile</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 bottom-0 z-50 flex flex-col w-64 bg-surface-container-lowest border-r border-border-light hidden md:flex">
+<div class="px-6 py-6 mb-4">
+<h1 class="font-headline-md text-headline-md font-black text-primary">Toolera</h1>
+<p class="font-caption text-caption text-secondary mt-1">Multi-vendor Panel</p>
+</div>
+<div class="flex-1 overflow-y-auto py-2">
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="storefront">storefront</span>
+<span class="font-label-bold text-label-bold">Sellers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-label-bold text-label-bold">Catalog</span>
+</a>
+
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-bold text-label-bold">Orders</span>
+</a><a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#"><span class="material-symbols-outlined" data-icon="category">category</span><span class="font-label-bold text-label-bold">Business Categories</span></a><a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#"><span class="material-symbols-outlined" data-icon="campaign">campaign</span><span class="font-label-bold text-label-bold">Marketing</span></a>
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg bg-primary-container text-on-primary-container font-bold cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="payments" data-weight="fill">payments</span>
+<span class="font-label-bold text-label-bold">Financials</span>
+</a>
+
+<a class="flex items-center gap-3 px-4 py-3 mx-2 my-1 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer active:opacity-80" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-bold text-label-bold">Settings</span>
+</a>
+</div>
+<div class="p-4 mt-auto border-t border-border-light">
+<button class="w-full py-2 px-4 bg-success-teal text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+                View Store
+            </button>
+<div class="mt-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 mx-[-8px] rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-bold text-label-bold">Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 mx-[-8px] rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-bold text-label-bold">Logout</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="pt-20 pb-20 md:pb-8 md:pl-[280px] pr-4 md:pr-8 min-h-screen max-w-container-max mx-auto">
+<!-- Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Subscriptions &amp; Packages</h2>
+<p class="font-body-md text-body-md text-secondary mt-1">Manage seller subscription plans and view active subscriber metrics.</p>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-success-teal text-on-primary rounded-lg font-label-bold text-label-bold hover:bg-primary-container transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+                Add New Package
+            </button>
+</div>
+<!-- Section 1: Package Management (Bento Grid Style) -->
+<section class="mb-section-padding-mobile md:mb-12">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="inventory_2">inventory_2</span>
+                Package Management
+            </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Package Card 1 -->
+<div class="bg-surface-base border border-border-light rounded-xl p-6 relative overflow-hidden group hover:border-success-teal transition-colors">
+<div class="absolute top-0 right-0 w-24 h-24 bg-surface-container-low rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div>
+<span class="inline-block px-3 py-1 bg-surface-container text-primary font-label-bold text-[12px] rounded-full mb-2">Basic</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Starter Plan</h4>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="star">star</span>
+</div>
+<div class="mb-6 relative z-10">
+<span class="font-headline-md text-headline-md text-success-teal font-bold">৳0</span>
+<span class="font-body-md text-body-md text-secondary">/mo</span>
+</div>
+<ul class="space-y-3 mb-8 font-body-md text-body-md text-on-surface-variant relative z-10">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Up to 50 Products</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Basic Analytics</li>
+<li class="flex items-center gap-2 opacity-50"><span class="material-symbols-outlined text-outline text-[20px]" data-icon="cancel">cancel</span> Priority Support</li>
+</ul>
+<button class="w-full py-2 px-4 border border-success-teal text-success-teal rounded-lg font-label-bold text-label-bold hover:bg-surface-container-low transition-colors relative z-10">
+                        Edit Package
+                    </button>
+</div>
+<!-- Package Card 2 (Active/Highlighted) -->
+<div class="bg-surface-base border border-success-teal rounded-xl p-6 relative overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.05)] transform md:-translate-y-2">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container opacity-10 rounded-bl-full -mr-10 -mt-10"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div>
+<span class="inline-block px-3 py-1 bg-primary-container text-on-primary-container font-label-bold text-[12px] rounded-full mb-2 flex items-center gap-1 w-max">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_fire_department">local_fire_department</span> Popular
+                            </span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Professional</h4>
+</div>
+<span class="material-symbols-outlined text-success-teal" data-icon="stars" data-weight="fill">stars</span>
+</div>
+<div class="mb-6 relative z-10">
+<span class="font-headline-md text-headline-md text-success-teal font-bold">৳99</span>
+<span class="font-body-md text-body-md text-secondary">/mo</span>
+</div>
+<ul class="space-y-3 mb-8 font-body-md text-body-md text-on-surface-variant relative z-10">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Unlimited Products</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Advanced Analytics</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Priority Support</li>
+</ul>
+<button class="w-full py-2 px-4 border border-success-teal text-success-teal rounded-lg font-label-bold text-label-bold hover:bg-surface-container-low transition-colors relative z-10">
+                        Edit Package
+                    </button>
+</div>
+<!-- Package Card 3 -->
+<div class="bg-surface-base border border-border-light rounded-xl p-6 relative overflow-hidden group hover:border-success-teal transition-colors">
+<div class="absolute top-0 right-0 w-24 h-24 bg-surface-container-low rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div>
+<span class="inline-block px-3 py-1 bg-surface-container text-primary font-label-bold text-[12px] rounded-full mb-2">Enterprise</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">Business Max</h4>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="domain">domain</span>
+</div>
+<div class="mb-6 relative z-10">
+<span class="font-headline-md text-headline-md text-success-teal font-bold">৳299</span>
+<span class="font-body-md text-body-md text-secondary">/mo</span>
+</div>
+<ul class="space-y-3 mb-8 font-body-md text-body-md text-on-surface-variant relative z-10">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Custom Integrations</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> Dedicated Account Manager</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-success-teal text-[20px]" data-icon="check_circle">check_circle</span> 24/7 Phone Support</li>
+</ul>
+<button class="w-full py-2 px-4 border border-success-teal text-success-teal rounded-lg font-label-bold text-label-bold hover:bg-surface-container-low transition-colors relative z-10">
+                        Edit Package
+                    </button>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+<!-- Section 2: Active Subscriptions -->
+<section class="xl:col-span-2 bg-surface-base border border-border-light rounded-xl overflow-hidden flex flex-col h-[500px]">
+<div class="p-6 border-b border-border-light bg-surface-subtle flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+                        Active Subscriptions
+                    </h3>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" data-icon="filter_list">filter_list</span>
+<select class="pl-9 pr-8 py-1.5 bg-surface-base border border-border-light rounded-lg font-body-md text-[14px] text-on-surface focus:outline-none focus:border-success-teal focus:ring-1 focus:ring-success-teal">
+<option>All Plans</option>
+<option>Professional</option>
+<option>Starter</option>
+</select>
+</div>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-lowest sticky top-0 z-10 shadow-sm">
+<tr>
+<th class="py-3 px-6 font-label-bold text-label-bold text-secondary border-b border-border-light">Seller</th>
+<th class="py-3 px-6 font-label-bold text-label-bold text-secondary border-b border-border-light">Plan Type</th>
+<th class="py-3 px-6 font-label-bold text-label-bold text-secondary border-b border-border-light">Cycle</th>
+<th class="py-3 px-6 font-label-bold text-label-bold text-secondary border-b border-border-light">Status</th>
+<th class="py-3 px-6 font-label-bold text-label-bold text-secondary border-b border-border-light text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-[14px] text-on-surface-variant divide-y divide-border-light">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-subtle transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">TM</div>
+<span class="font-semibold text-on-surface">TechMart BD</span>
+</td>
+<td class="py-4 px-6">Professional</td>
+<td class="py-4 px-6">Oct 1 - Nov 1, 2023</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#1e8e3e]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1e8e3e]"></span> Paid
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-subtle transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">FE</div>
+<span class="font-semibold text-on-surface">Fashion Express</span>
+</td>
+<td class="py-4 px-6">Starter Plan</td>
+<td class="py-4 px-6">Sep 15 - Oct 15, 2023</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#fff3e0] text-[#f57c00]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#f57c00]"></span> Pending
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-subtle transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">GB</div>
+<span class="font-semibold text-on-surface">Gadget Bazaar</span>
+</td>
+<td class="py-4 px-6">Business Max</td>
+<td class="py-4 px-6">Oct 5 - Nov 5, 2023</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#1e8e3e]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1e8e3e]"></span> Paid
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-subtle transition-colors">
+<td class="py-4 px-6 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-primary font-bold">LD</div>
+<span class="font-semibold text-on-surface">Local Delights</span>
+</td>
+<td class="py-4 px-6">Professional</td>
+<td class="py-4 px-6">Sep 28 - Oct 28, 2023</td>
+<td class="py-4 px-6">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#fce8e8] text-[#d93025]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d93025]"></span> Overdue
+                                    </span>
+</td>
+<td class="py-4 px-6 text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section 3: Recent Subscription Orders -->
+<aside class="bg-surface-base border border-border-light rounded-xl overflow-hidden flex flex-col h-[500px]">
+<div class="p-6 border-b border-border-light bg-surface-subtle">
+<h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="receipt_long">receipt_long</span>
+                        Recent Purchases
+                    </h3>
+</div>
+<div class="p-4 flex-1 overflow-auto space-y-4">
+<!-- Order Item 1 -->
+<div class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-subtle transition-colors border border-transparent hover:border-border-light">
+<div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-success-teal flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="upgrade">upgrade</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-md text-[14px] text-on-surface font-medium truncate">StyleHub Upgraded to Professional</p>
+<p class="font-caption text-caption text-secondary mt-0.5">Today, 10:45 AM</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-label-bold text-[14px] text-success-teal">+৳99</span>
+</div>
+</div>
+<!-- Order Item 2 -->
+<div class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-subtle transition-colors border border-transparent hover:border-border-light">
+<div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-success-teal flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="autorenew">autorenew</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-md text-[14px] text-on-surface font-medium truncate">Gadget Bazaar Renewal</p>
+<p class="font-caption text-caption text-secondary mt-0.5">Yesterday, 02:15 PM</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-label-bold text-[14px] text-success-teal">+৳299</span>
+</div>
+</div>
+<!-- Order Item 3 -->
+<div class="flex items-start gap-4 p-3 rounded-lg hover:bg-surface-subtle transition-colors border border-transparent hover:border-border-light">
+<div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-success-teal flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-body-md text-[14px] text-on-surface font-medium truncate">New Sub: Organic Foods BD</p>
+<p class="font-caption text-caption text-secondary mt-0.5">Oct 10, 09:30 AM</p>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="font-label-bold text-[14px] text-success-teal">+৳99</span>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-border-light bg-surface-subtle">
+<button class="w-full py-2 text-primary font-label-bold text-[14px] hover:bg-surface-container-low rounded-lg transition-colors">View All Transactions</button>
+</div>
+</aside>
+</div>
+</main>
+<!-- Mobile Bottom NavBar (Suppressed as per rules since this is an Admin panel, SideNav is primary for Web, but keeping structural layout ready if needed on smaller screens, though design says desktop focused) -->
+
+
+</body></html>

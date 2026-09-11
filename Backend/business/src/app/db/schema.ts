@@ -931,7 +931,10 @@ export const stockLogsTable = pgTable('StockLog', {
   sku: text('sku'),
   type: text('type').notNull().default('ADJUSTMENT'),
   qty: integer('qty').notNull().default(0),
+  previousStock: integer('previousStock'),
+  newStock: integer('newStock'),
   note: text('note'),
+  actor: text('actor'),
   costLoss: doublePrecision('costLoss'),
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('StockLog_storeId_idx').on(t.storeId)]);

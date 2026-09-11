@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Toolera Admin Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Montserrat:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0b1c30",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#f5fff7",
+                        "on-tertiary-fixed-variant": "#3e4943",
+                        "success-teal": "#0e9b6d",
+                        "primary-fixed-dim": "#66dca8",
+                        "tertiary-fixed": "#d9e6dd",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#cbdbf5",
+                        "primary": "#006948",
+                        "on-surface-variant": "#3d4a42",
+                        "surface-bright": "#f8f9ff",
+                        "surface-base": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-subtle": "#f8fafc",
+                        "on-primary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "on-tertiary-container": "#f5fff7",
+                        "tertiary-fixed-dim": "#bdcac1",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "border-light": "#e2e8f0",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "trust-blue": "#0369a1",
+                        "surface-variant": "#d3e4fe",
+                        "inverse-surface": "#213145",
+                        "outline": "#6d7a72",
+                        "secondary-container": "#d5e0f8",
+                        "secondary-fixed": "#d8e3fb",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#111c2d",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed": "#131e19",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#545f73",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "on-primary-fixed-variant": "#005137",
+                        "tertiary-container": "#6b7770",
+                        "inverse-primary": "#66dca8",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "primary-container": "#00855c",
+                        "surface-tint": "#006c4a",
+                        "primary-fixed": "#83f9c3",
+                        "on-secondary-container": "#586377",
+                        "on-primary-fixed": "#002114",
+                        "outline-variant": "#bccac0",
+                        "tertiary": "#535f58",
+                        "on-background": "#0b1c30"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-padding-mobile": "64px",
+                        "base": "8px",
+                        "section-padding": "120px",
+                        "gutter": "24px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "caption": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Montserrat"],
+                        "label-bold": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-bold": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="h-full bg-background text-on-background font-body-md">
+<!-- Navigation logic: Transactional page (Login) -> Suppress main navigation shell -->
+<div class="flex min-h-full">
+<!-- Left Side: Visual Representation -->
+<div class="hidden lg:flex lg:flex-1 bg-surface-container-low flex-col justify-between p-section-padding relative overflow-hidden">
+<!-- Decorative Background Elements -->
+<div class="absolute top-0 left-0 w-full h-full pointer-events-none opacity-50">
+<div class="absolute -top-40 -left-40 w-96 h-96 bg-primary-fixed rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+<div class="absolute top-1/2 -right-20 w-80 h-80 bg-secondary-fixed rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+</div>
+<!-- Logo -->
+<div class="relative z-10 flex items-center gap-3">
+<span class="material-symbols-outlined filled text-primary text-4xl" data-icon="storefront">storefront</span>
+<span class="font-display-lg text-primary text-4xl">Toolera</span>
+</div>
+<!-- Content -->
+<div class="relative z-10 max-w-lg mt-auto pb-12">
+<h1 class="font-display-lg text-on-surface mb-6">Scale Your Business with Confidence</h1>
+<p class="font-body-lg text-on-surface-variant mb-12">Manage your multi-vendor marketplace, track inventory, and optimize financials from a single, powerful admin dashboard designed for growth.</p>
+<!-- Supplied Logo Image -->
+<div class="w-full max-w-[400px]">
+<img alt="Toolera Logo" class="w-full h-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ_qlWg0A0_odeF2ZpHPpWk3saeQjXmJzH9NX4Lxp5rCT5eiLEiYJtSNFq9TDZ6-G2SVUneTJ_ycjPttLWpccp4lmma3Am21YTtznOkoIahZmLG3VzzJg0F1ckWZGS_WUdvNGbngu5sCaP6tuEQEbnwp2wzBycOOLq67_yBwD30r828IapLFA69YJQeNjdVvXw_3_MGdy4aisGaxzaY6oAjSYdgLMzODcsCeNCxJyQ00iiFgGLD-a1NlG9e7-aupQLt7I"/>
+</div>
+</div>
+<!-- Abstract Illustration Container (Placeholder for complex isometric art requested in guidelines) -->
+<div class="absolute bottom-0 right-0 w-2/3 h-2/3 z-0 flex items-end justify-end pointer-events-none">
+<div class="w-full h-full bg-contain bg-no-repeat bg-bottom right-0 bottom-0 opacity-80" data-alt="A high-quality, modern isometric illustration representing a scalable digital marketplace or business dashboard. Clean vectors, subtle teal (#0e9b6d) and slate blue accents on a very light background. Showing interconnected nodes, a stylized storefront, and rising charts, conveying a sense of organized, empowering growth and stable enterprise architecture." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDpJKKBaLR34_IiOeoXSkk08hr_QryqZDSEsqft6l3Sjbt-ABtGBnqceCTjFVrLuh7yUSooJ5BCZPC_o--aGxKjG3n-Xl2PpVnB3BstkScHX_7evH8DU1GvoOu_hRB-Tfqf1BJrOnBA8yYGhlNJ3VNbqkvC0kOxpfVBEs827oEP6ED-tFS3brfjBDIec0Uv7JoRmoDta5Pl787WGhsdQDMLVb3RwNmxP8WUwk16VbE-pu_3Gzxtx7GUhg')"></div>
+</div>
+</div>
+<!-- Right Side: Login Form -->
+<div class="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:flex-none lg:w-[600px] bg-surface-base border-l border-border-light z-10 shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
+<div class="mx-auto w-full max-w-sm">
+<!-- Mobile Logo (Hidden on desktop) -->
+<div class="flex lg:hidden items-center gap-2 mb-8 justify-center">
+<span class="material-symbols-outlined filled text-primary text-3xl" data-icon="storefront">storefront</span>
+<span class="font-headline-md text-primary">Toolera</span>
+</div>
+<div class="text-center lg:text-left mb-10">
+<h2 class="font-headline-md text-on-surface mb-2">Welcome Back</h2>
+<p class="font-body-md text-on-surface-variant">Sign in to the Admin Panel</p>
+</div>
+<div class="mt-10">
+<form action="#" class="space-y-6" method="POST">
+<!-- Email Field -->
+<div>
+<label class="block font-label-bold text-on-surface mb-2" for="email">Email address or Username</label>
+<div class="relative mt-2 rounded-md shadow-sm">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-outline" data-icon="mail">mail</span>
+</div>
+<input autocomplete="email" class="block w-full rounded-lg border-0 py-3 pl-10 text-on-surface ring-1 ring-inset ring-border-light placeholder:text-outline focus:ring-2 focus:ring-inset focus:ring-primary focus:border-primary focus:shadow-[0_0_0_3px_rgba(14,155,109,0.2)] font-body-md transition-all duration-200" id="email" name="email" placeholder="admin@example.com" required="" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div>
+<label class="block font-label-bold text-on-surface mb-2" for="password">Password</label>
+<div class="relative mt-2 rounded-md shadow-sm">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-outline" data-icon="lock">lock</span>
+</div>
+<input autocomplete="current-password" class="block w-full rounded-lg border-0 py-3 pl-10 text-on-surface ring-1 ring-inset ring-border-light placeholder:text-outline focus:ring-2 focus:ring-inset focus:ring-primary focus:border-primary focus:shadow-[0_0_0_3px_rgba(14,155,109,0.2)] font-body-md transition-all duration-200" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Options -->
+<div class="flex items-center justify-between">
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-border-light text-primary focus:ring-primary" id="remember-me" name="remember-me" type="checkbox"/>
+<label class="ml-3 block font-body-md text-on-surface-variant" for="remember-me">Remember me</label>
+</div>
+<div class="text-sm">
+<a class="font-label-bold text-primary hover:text-primary-container transition-colors" href="#">Forgot password?</a>
+</div>
+</div>
+<!-- Submit Button -->
+<div>
+<button class="flex w-full justify-center rounded-lg bg-success-teal px-3 py-3 font-label-bold text-white shadow-sm hover:bg-[#0c8a61] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors duration-200 shadow-[0_4px_20px_rgba(0,0,0,0.05)]" type="submit">
+                                Login as Admin
+                            </button>
+</div>
+</form>
+<!-- Footer Help -->
+<p class="mt-10 text-center font-caption text-on-surface-variant">
+                        Need assistance? Contact <a class="font-label-bold text-primary hover:underline" href="#">IT Support</a>.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+</body></html>

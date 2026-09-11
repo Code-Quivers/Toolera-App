@@ -7,7 +7,16 @@ const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 // Appended as ?storeSlug= to product/category/order reads so the business
 // service can resolve the correct store without relying on auth-token fallback.
 let _dashboardSlug = "";
-export function setDashboardStoreSlug(slug: string) { _dashboardSlug = slug; }
+const _slugListeners = new Set<(slug: string) => void>();
+export function getDashboardStoreSlug(): string { return _dashboardSlug; }
+export function onDashboardSlugSet(cb: (slug: string) => void): () => void {
+  _slugListeners.add(cb);
+  return () => _slugListeners.delete(cb);
+}
+export function setDashboardStoreSlug(slug: string) {
+  _dashboardSlug = slug;
+  _slugListeners.forEach(cb => cb(slug));
+}
 function sq(extra = "") {
   const base = _dashboardSlug ? `storeSlug=${encodeURIComponent(_dashboardSlug)}` : "";
   if (!base && !extra) return "";
@@ -132,7 +141,8 @@ export const api = {
   markNotificationRead: (id: string) => apiFetch<void>(`/api/v1/notifications/${id}/read`, { method: "PATCH" }),
 
   // ── Stock logs ────────────────────────────────────────────────────────────
-  getStockLogs: (params = "") => apiFetch<any[]>(`/api/v1/stock-logs${params}`),
+  getStockLogs: (params = "") => apiFetch<any[]>(`/api/v1/stock-logs${sq(params.replace(/^\?/, ""))}`),
+  createStockLog: (data: unknown) => apiFetch<any>(`/api/v1/stock-logs${sq()}`, { method: "POST", body: JSON.stringify(data) }),
 
   // ── CMS config (SEO / pixels) ─────────────────────────────────────────────
   getCmsConfig: () => apiFetch<any>("/api/v1/settings/cms"),

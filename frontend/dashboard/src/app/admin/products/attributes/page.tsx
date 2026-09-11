@@ -415,7 +415,7 @@ export default function AttributesAdminPage() {
                     Manage Values: <span className="text-[#008B47]">{currentAttr.name}</span>
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
-                    Type: {TYPE_META[currentAttr.type]?.label} ({currentAttr.values.length} configured)
+                    Type: {TYPE_META[currentAttr.type]?.label} ({(currentAttr.values ?? []).length} configured)
                   </p>
                 </div>
               </div>
@@ -531,16 +531,16 @@ export default function AttributesAdminPage() {
               {/* Existing Values List */}
               <div className="space-y-2">
                 <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center justify-between">
-                  <span>Existing Values ({currentAttr.values.length})</span>
+                  <span>Existing Values ({(currentAttr.values ?? []).length})</span>
                 </div>
 
-                {currentAttr.values.length === 0 ? (
+                {(currentAttr.values ?? []).length === 0 ? (
                   <div className="text-center py-6 text-slate-400 italic">
                     No values added yet. Add a value above.
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 overflow-hidden bg-white">
-                    {currentAttr.values.map((v) => {
+                    {(currentAttr.values ?? []).map((v) => {
                       const isEditing = editingValId === v.id;
 
                       if (isEditing) {
